@@ -1,0 +1,84 @@
+<UserControl x:Class="VSPets.Controls.PetControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="48" d:DesignWidth="48"
+             IsHitTestVisible="True"
+             Cursor="Hand">
+
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem x:Name="MenuAddPet" Header="Add Pet..." Click="OnAddPetClick"/>
+            <Separator/>
+            <MenuItem x:Name="MenuRename" Header="Rename..." Click="OnRenameClick"/>
+            <MenuItem x:Name="MenuRemove" Header="Remove Pet" Click="OnRemoveClick"/>
+            <Separator/>
+            <MenuItem x:Name="MenuSettings" Header="Settings..." Click="OnSettingsClick"/>
+        </ContextMenu>
+    </UserControl.ContextMenu>
+
+    <Grid>
+        <!-- Main pet sprite container - has a transparent but hit-testable background -->
+        <Border x:Name="PetContainer" 
+                Background="#01000000"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Left">
+            
+            <!-- The animated pet sprite image -->
+            <Image x:Name="PetSprite"
+                   Width="26" Height="26"
+                   Stretch="Uniform"
+                   RenderTransformOrigin="0.5,0.5">
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="FlipTransform" ScaleX="1" ScaleY="1"/>
+                        <TranslateTransform x:Name="PositionTransform" X="0" Y="0"/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
+        </Border>
+        
+        <!-- Speech bubble (shown on hover or for messages) -->
+        <Border x:Name="SpeechBubble"
+                Visibility="Collapsed"
+                Background="White"
+                BorderBrush="Black"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="6,3"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,-30,0,0">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="2" 
+                                  Opacity="0.3" 
+                                  BlurRadius="4"/>
+            </Border.Effect>
+            
+            <TextBlock x:Name="SpeechText"
+                       FontSize="11"
+                       FontFamily="Segoe UI"
+                       Foreground="Black"
+                       TextAlignment="Center"
+                       Text="👋"/>
+        </Border>
+        
+        <!-- Name label (shown on hover) -->
+        <Border x:Name="NameLabel"
+                Visibility="Collapsed"
+                Background="#E0000000"
+                CornerRadius="3"
+                Padding="4,2"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,-18">
+            <TextBlock x:Name="NameText"
+                       FontSize="9"
+                       FontFamily="Segoe UI"
+                       Foreground="White"
+                       TextAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>

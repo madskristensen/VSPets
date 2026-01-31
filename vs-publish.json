@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "other" ],
+  "identity": {
+    "internalName": "VSPets",
+    "tags": [ "fun" ]
+  },
+  "assetFiles": [
+
+  ],
+  "overview": "README.md",
+  "publisher": "MadsKristensen",
+  "repo": "https://github.com/madskristensen/VSPets"
+}

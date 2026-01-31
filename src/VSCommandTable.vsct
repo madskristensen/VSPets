@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Include href="KnownImageIds.vsct"/>
+  <Include href="VSGlobals.vsct"/>
+
+  <Commands package="VSPets">
+    <Menus>
+      <!-- VS Pets submenu under View > Other Windows -->
+      <Menu guid="VSPets" id="VSPetsMenu" priority="0x0100" type="Menu">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Strings>
+          <ButtonText>VS Pets</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <Groups>
+      <Group guid="VSPets" id="VSPetsMenuGroup" priority="0x0600">
+        <Parent guid="VSPets" id="VSPetsMenu"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <!-- Add Pet Command -->
+      <Button guid="VSPets" id="AddPetCommand" priority="0x0100" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="Add" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Add Pet</ButtonText>
+          <LocCanonicalName>.VSPets.AddPet</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Add Cat Command -->
+      <Button guid="VSPets" id="AddCatCommand" priority="0x0110" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <!--<Icon guid="ImageCatalogGuid" id="Cat" />
+        <CommandFlag>IconIsMoniker</CommandFlag>-->
+        <Strings>
+          <ButtonText>Add Cat 🐱</ButtonText>
+          <LocCanonicalName>.VSPets.AddCat</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Add Dog Command -->
+      <Button guid="VSPets" id="AddDogCommand" priority="0x0120" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Strings>
+          <ButtonText>Add Dog 🐕</ButtonText>
+          <LocCanonicalName>.VSPets.AddDog</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Add Fox Command -->
+      <Button guid="VSPets" id="AddFoxCommand" priority="0x0130" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Strings>
+          <ButtonText>Add Fox 🦊</ButtonText>
+          <LocCanonicalName>.VSPets.AddFox</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Add Clippy Command -->
+      <Button guid="VSPets" id="AddClippyCommand" priority="0x0140" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Strings>
+          <ButtonText>Add Clippy 📎</ButtonText>
+          <LocCanonicalName>.VSPets.AddClippy</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Add Rubber Duck Command -->
+      <Button guid="VSPets" id="AddRubberDuckCommand" priority="0x0150" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Strings>
+          <ButtonText>Add Rubber Duck 🦆</ButtonText>
+          <LocCanonicalName>.VSPets.AddRubberDuck</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Remove All Pets Command -->
+      <Button guid="VSPets" id="RemoveAllPetsCommand" priority="0x0200" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="Cancel" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Remove All Pets</ButtonText>
+          <LocCanonicalName>.VSPets.RemoveAllPets</LocCanonicalName>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="VSPets" value="{e00d6866-a4de-4e76-9769-26f241f5a7ba}">
+      <IDSymbol name="VSPetsMenu" value="0x0001" />
+      <IDSymbol name="VSPetsMenuGroup" value="0x0002" />
+      <IDSymbol name="AddPetCommand" value="0x0100" />
+      <IDSymbol name="AddCatCommand" value="0x0110" />
+      <IDSymbol name="AddDogCommand" value="0x0120" />
+      <IDSymbol name="AddFoxCommand" value="0x0130" />
+      <IDSymbol name="AddClippyCommand" value="0x0140" />
+      <IDSymbol name="AddRubberDuckCommand" value="0x0150" />
+      <IDSymbol name="RemoveAllPetsCommand" value="0x0200" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
