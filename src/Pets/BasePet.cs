@@ -109,6 +109,7 @@ namespace VSPets.Pets
         public event EventHandler<PetPositionChangedEventArgs> PositionChanged;
         public event EventHandler<PetSpeechEventArgs> Speech;
         public event EventHandler<PetBehaviorEventArgs> BehaviorTriggered;
+        public event EventHandler<PetDirectionChangedEventArgs> DirectionChanged;
 
         /// <summary>
         /// Event fired when the animation frame changes.
@@ -182,8 +183,7 @@ namespace VSPets.Pets
             {
                 Background = Brushes.Transparent,
                 Child = _spriteImage,
-                IsHitTestVisible = true,
-                Cursor = System.Windows.Input.Cursors.Hand
+                IsHitTestVisible = true
                 // ToolTip removed - using NameLabel in PetControl instead
             };
 
@@ -567,8 +567,16 @@ namespace VSPets.Pets
 
         private PetState ToggleDirection()
         {
+            PetDirection oldDirection = _direction;
             _direction = _direction == PetDirection.Left ? PetDirection.Right : PetDirection.Left;
             UpdateSpriteDirection();
+
+            DirectionChanged?.Invoke(this, new PetDirectionChangedEventArgs
+            {
+                OldDirection = oldDirection,
+                NewDirection = _direction
+            });
+
             return _currentState; // Stay in same state
         }
 
@@ -647,12 +655,7 @@ namespace VSPets.Pets
 
             _returnToState = _currentState;
             SetState(PetState.Happy);
-
-            Speech?.Invoke(this, new PetSpeechEventArgs
-            {
-                Message = "👋",
-                DurationMs = 1500
-            });
+            // Note: No speech bubble on hover - only show bubbles for explicit actions
         }
 
         /// <summary>
@@ -768,8 +771,15 @@ namespace VSPets.Pets
         {
             if (_direction != direction)
             {
+                PetDirection oldDirection = _direction;
                 _direction = direction;
                 UpdateSpriteDirection();
+
+                DirectionChanged?.Invoke(this, new PetDirectionChangedEventArgs
+                {
+                    OldDirection = oldDirection,
+                    NewDirection = _direction
+                });
             }
         }
 

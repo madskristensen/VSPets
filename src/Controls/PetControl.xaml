@@ -5,8 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="48" d:DesignWidth="48"
-             IsHitTestVisible="True"
-             Cursor="Hand">
+             IsHitTestVisible="True">
 
     <UserControl.ContextMenu>
         <ContextMenu>
@@ -58,8 +57,8 @@
             </Border.Effect>
             
             <TextBlock x:Name="SpeechText"
-                       FontSize="11"
-                       FontFamily="Segoe UI"
+                       FontSize="15"
+                       FontFamily="Segoe UI Emoji"
                        Foreground="Black"
                        TextAlignment="Center"
                        Text="👋"/>

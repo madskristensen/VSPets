@@ -41,6 +41,7 @@ namespace VSPets.Controls
                     _pet.StateChanged -= OnPetStateChanged;
                     _pet.PositionChanged -= OnPetPositionChanged;
                     _pet.Speech -= OnPetSpeech;
+                    _pet.DirectionChanged -= OnPetDirectionChanged;
 
                     if (_basePet != null)
                     {
@@ -57,6 +58,7 @@ namespace VSPets.Controls
                     _pet.StateChanged += OnPetStateChanged;
                     _pet.PositionChanged += OnPetPositionChanged;
                     _pet.Speech += OnPetSpeech;
+                    _pet.DirectionChanged += OnPetDirectionChanged;
 
                     if (_basePet != null)
                     {
@@ -403,6 +405,19 @@ namespace VSPets.Controls
             }
         }
 
+        private void OnPetDirectionChanged(object sender, PetDirectionChangedEventArgs e)
+        {
+            // Use BeginInvoke to avoid blocking if not already on UI thread
+            if (Dispatcher.CheckAccess())
+            {
+                SetDirection(e.NewDirection);
+            }
+            else
+            {
+                Dispatcher.BeginInvoke(new Action(() => SetDirection(e.NewDirection)));
+            }
+        }
+
         private void OnMouseEnter(object sender, MouseEventArgs e)
         {
             // Show name label
@@ -632,6 +647,7 @@ namespace VSPets.Controls
                 _pet.StateChanged -= OnPetStateChanged;
                 _pet.PositionChanged -= OnPetPositionChanged;
                 _pet.Speech -= OnPetSpeech;
+                _pet.DirectionChanged -= OnPetDirectionChanged;
             }
 
             if (_basePet != null)

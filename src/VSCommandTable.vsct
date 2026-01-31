@@ -8,11 +8,12 @@
 
   <Commands package="VSPets">
     <Menus>
-      <!-- VS Pets submenu under View > Other Windows -->
+      <!-- VS Pets submenu under Extensions menu -->
       <Menu guid="VSPets" id="VSPetsMenu" priority="0x0100" type="Menu">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_MM_TOOLSADDINS"/>
         <Strings>
           <ButtonText>VS Pets</ButtonText>
+          <LocCanonicalName>.VSPets.Menu</LocCanonicalName>
         </Strings>
       </Menu>
     </Menus>

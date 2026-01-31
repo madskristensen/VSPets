@@ -135,6 +135,20 @@ namespace VSPets.Pets
         /// Event fired when the pet wants to display a speech bubble.
         /// </summary>
         event EventHandler<PetSpeechEventArgs> Speech;
+
+        /// <summary>
+        /// Event fired when the pet's direction changes.
+        /// </summary>
+        event EventHandler<PetDirectionChangedEventArgs> DirectionChanged;
+    }
+
+    /// <summary>
+    /// Event arguments for pet direction changes.
+    /// </summary>
+    public class PetDirectionChangedEventArgs : EventArgs
+    {
+        public PetDirection OldDirection { get; set; }
+        public PetDirection NewDirection { get; set; }
     }
 
     /// <summary>

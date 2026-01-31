@@ -115,11 +115,12 @@ Your pets aren't just decorations—they have personality!
 
 ## 💡 Tips
 
+- **Drag pets** to reposition them along the status bar
 - **Pets remember their names** across Visual Studio sessions
 - **White pets have outlines** so they're visible on light themes
 - **Pets walk off-screen** and re-enter from either side
 - **Each pet is unique** with slightly different speeds and behaviors
-- **Hover over a pet** to see their name and make them happy!
+- **Hover over a pet** to see their name
 
 ---
 
