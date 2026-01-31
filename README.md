@@ -44,9 +44,11 @@ Choose from a variety of pets:
 
 - 🐱 **Cats** - Orange, black, white, gray, and brown
 - 🐕 **Dogs** - Various colors including Shiba Inu style
-- 🦊 **Foxes** - Classic orange with white markings
+- 🦊 **Foxes** - Classic orange and arctic white
+- 🐻 **Bears** - Brown grizzly, black bear, and white polar bear
+- 🦎 **Axolotls** - Pink, blue, gold, white, and black
 - 📎 **Clippy** - The legendary Office assistant returns!
-- 🦆 **Rubber Duck** - For debugging companionship
+- 🦆 **Rubber Duck** - Multiple colors: yellow, white, black, blue, pink, gold, and orange
 
 ### 🖱️ Easy Interaction
 
