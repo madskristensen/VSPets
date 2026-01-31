@@ -61,7 +61,7 @@ namespace VSPets.Services
                 using (var reader = new StreamReader(PetsFile))
                 {
                     var json = await reader.ReadToEndAsync();
-                    var pets = JsonConvert.DeserializeObject<List<PetData>>(json);
+                    List<PetData> pets = JsonConvert.DeserializeObject<List<PetData>>(json);
                     
                     System.Diagnostics.Debug.WriteLine($"VSPets: Loaded {pets?.Count ?? 0} pets from disk");
                     return pets ?? new List<PetData>();

@@ -14,12 +14,12 @@ namespace VSPets.Animation
     public class ProceduralSpriteRenderer
     {
         private static readonly Lazy<ProceduralSpriteRenderer> _instance =
-            new Lazy<ProceduralSpriteRenderer>(() => new ProceduralSpriteRenderer());
+            new(() => new ProceduralSpriteRenderer());
 
         private readonly Dictionary<string, BitmapSource> _frameCache =
-            new Dictionary<string, BitmapSource>(StringComparer.OrdinalIgnoreCase);
+            new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly object _cacheLock = new object();
+        private readonly object _cacheLock = new();
 
         /// <summary>
         /// Gets the singleton instance.
@@ -73,12 +73,12 @@ namespace VSPets.Animation
 
             lock (_cacheLock)
             {
-                if (_frameCache.TryGetValue(key, out var cached))
+                if (_frameCache.TryGetValue(key, out BitmapSource cached))
                 {
                     return cached;
                 }
 
-                var sprite = CreateSprite(petType, color, state, frame, size);
+                BitmapSource sprite = CreateSprite(petType, color, state, frame, size);
                 _frameCache[key] = sprite;
                 return sprite;
             }
@@ -101,12 +101,12 @@ namespace VSPets.Animation
             var renderTarget = new RenderTargetBitmap(size, size, dpi, dpi, PixelFormats.Pbgra32);
 
             var drawingVisual = new DrawingVisual();
-            using (var dc = drawingVisual.RenderOpen())
+            using (DrawingContext dc = drawingVisual.RenderOpen())
             {
-                var baseColor = GetPetBaseColor(petType, color);
-                var accentColor = GetPetAccentColor(petType, color);
-                var eyeColor = Colors.Black;
-                var outlinePen = CreateOutlinePen(color, size / 32.0); // Scaled outline
+                Color baseColor = GetPetBaseColor(petType, color);
+                Color accentColor = GetPetAccentColor(petType, color);
+                Color eyeColor = Colors.Black;
+                Pen outlinePen = CreateOutlinePen(color, size / 32.0); // Scaled outline
 
                 switch (petType)
                 {
@@ -163,7 +163,7 @@ namespace VSPets.Animation
         private Color GetPetAccentColor(PetType petType, PetColor color)
         {
             // Lighter accent for chest/belly
-            var baseColor = GetPetBaseColor(petType, color);
+            Color baseColor = GetPetBaseColor(petType, color);
             return Color.FromRgb(
                 (byte)Math.Min(255, baseColor.R + 60),
                 (byte)Math.Min(255, baseColor.G + 60),
@@ -191,7 +191,7 @@ namespace VSPets.Animation
         /// </summary>
         private Pen CreateOutlinePen(PetColor color, double thickness)
         {
-            var outlineColor = GetOutlineColor(color);
+            Color? outlineColor = GetOutlineColor(color);
             if (outlineColor == null)
             {
                 return null;
@@ -216,13 +216,13 @@ namespace VSPets.Animation
         private void DrawCat(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
         {
             var scale = size / 32.0;
-            var baseBrush = CreateBrush(baseColor);
-            var accentBrush = CreateBrush(accentColor);
-            var eyeBrush = CreateBrush(eyeColor);
-            var pinkBrush = CreateBrush(Color.FromRgb(255, 180, 180));
+            Brush baseBrush = CreateBrush(baseColor);
+            Brush accentBrush = CreateBrush(accentColor);
+            Brush eyeBrush = CreateBrush(eyeColor);
+            Brush pinkBrush = CreateBrush(Color.FromRgb(255, 180, 180));
 
             // Get leg positions based on state and frame
-            var (frontLegOffset, backLegOffset, bodyBob) = GetLegPositions(state, frame);
+            (double frontLegOffset, double backLegOffset, double bodyBob) = GetLegPositions(state, frame);
 
             // Body (oval) with slight bob
             var bodyY = 14 * scale + bodyBob * scale;
@@ -304,8 +304,8 @@ namespace VSPets.Animation
 
         private void DrawCatEyes(DrawingContext dc, Brush eyeBrush, double scale, double headY, PetState state, int frame)
         {
-            var whiteBrush = CreateBrush(Colors.White);
-            var pupilBrush = eyeBrush;
+            Brush whiteBrush = CreateBrush(Colors.White);
+            Brush pupilBrush = eyeBrush;
 
             if (state == PetState.Sleeping)
             {
@@ -338,7 +338,7 @@ namespace VSPets.Animation
         private void DrawCatTail(DrawingContext dc, Brush brush, double scale, double bodyY, PetState state, int frame)
         {
             var tailWag = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 3 : 0;
-            var points = new[]
+            Point[] points = new[]
             {
                 new Point(25 * scale, bodyY),
                 new Point(28 * scale, (bodyY - 4 * scale + tailWag * scale)),
@@ -347,7 +347,7 @@ namespace VSPets.Animation
             };
 
             var geometry = new StreamGeometry();
-            using (var ctx = geometry.Open())
+            using (StreamGeometryContext ctx = geometry.Open())
             {
                 ctx.BeginFigure(points[0], false, false);
                 ctx.BezierTo(points[1], points[2], points[3], true, true);
@@ -369,13 +369,13 @@ namespace VSPets.Animation
         private void DrawDog(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
         {
             var scale = size / 32.0;
-            var baseBrush = CreateBrush(baseColor);
-            var accentBrush = CreateBrush(accentColor);
-            var eyeBrush = CreateBrush(eyeColor);
-            var noseBrush = CreateBrush(Colors.Black);
-            var tongueBrush = CreateBrush(Color.FromRgb(255, 120, 140));
+            Brush baseBrush = CreateBrush(baseColor);
+            Brush accentBrush = CreateBrush(accentColor);
+            Brush eyeBrush = CreateBrush(eyeColor);
+            Brush noseBrush = CreateBrush(Colors.Black);
+            Brush tongueBrush = CreateBrush(Color.FromRgb(255, 120, 140));
 
-            var (frontLegOffset, backLegOffset, bodyBob) = GetLegPositions(state, frame);
+            (double frontLegOffset, double backLegOffset, double bodyBob) = GetLegPositions(state, frame);
 
             // Body (rounder than cat)
             var bodyY = 14 * scale + bodyBob * scale;
@@ -457,7 +457,7 @@ namespace VSPets.Animation
 
         private void DrawDogEyes(DrawingContext dc, Brush eyeBrush, double scale, double headY, PetState state)
         {
-            var whiteBrush = CreateBrush(Colors.White);
+            Brush whiteBrush = CreateBrush(Colors.White);
 
             if (state == PetState.Sleeping)
             {
@@ -507,13 +507,13 @@ namespace VSPets.Animation
         private void DrawFox(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
         {
             var scale = size / 32.0;
-            var baseBrush = CreateBrush(baseColor);
-            var accentBrush = CreateBrush(accentColor);
-            var whiteBrush = CreateBrush(Colors.White);
-            var eyeBrush = CreateBrush(eyeColor);
-            var noseBrush = CreateBrush(Colors.Black);
+            Brush baseBrush = CreateBrush(baseColor);
+            Brush accentBrush = CreateBrush(accentColor);
+            Brush whiteBrush = CreateBrush(Colors.White);
+            Brush eyeBrush = CreateBrush(eyeColor);
+            Brush noseBrush = CreateBrush(Colors.Black);
 
-            var (frontLegOffset, backLegOffset, bodyBob) = GetLegPositions(state, frame);
+            (double frontLegOffset, double backLegOffset, double bodyBob) = GetLegPositions(state, frame);
 
             // Body (sleek, longer than cat)
             var bodyY = 14 * scale + bodyBob * scale;
@@ -557,7 +557,7 @@ namespace VSPets.Animation
                 new Point(11 * scale, (headY - 5 * scale)));
 
             // Inner ears (dark)
-            var darkBrush = CreateBrush(Color.FromRgb(60, 30, 10));
+            Brush darkBrush = CreateBrush(Color.FromRgb(60, 30, 10));
             DrawTriangle(dc, darkBrush,
                 new Point(2.5 * scale, (headY - 4 * scale)),
                 new Point(1.5 * scale, (headY - 8 * scale)),
@@ -581,7 +581,7 @@ namespace VSPets.Animation
 
         private void DrawFoxLegs(DrawingContext dc, Brush baseBrush, double scale, double frontOffset, double backOffset, Pen outlinePen = null)
         {
-            var blackBrush = CreateBrush(Color.FromRgb(30, 30, 30));
+            Brush blackBrush = CreateBrush(Color.FromRgb(30, 30, 30));
 
             // Front legs
             dc.DrawRoundedRectangle(baseBrush, outlinePen,
@@ -608,8 +608,8 @@ namespace VSPets.Animation
 
         private void DrawFoxEyes(DrawingContext dc, Brush eyeBrush, double scale, double headY, PetState state)
         {
-            var whiteBrush = CreateBrush(Colors.White);
-            var amberBrush = CreateBrush(Color.FromRgb(255, 180, 0));
+            Brush whiteBrush = CreateBrush(Colors.White);
+            Brush amberBrush = CreateBrush(Color.FromRgb(255, 180, 0));
 
             if (state == PetState.Sleeping)
             {
@@ -644,7 +644,7 @@ namespace VSPets.Animation
 
             // Fluffy tail body
             var tailGeometry = new StreamGeometry();
-            using (var ctx = tailGeometry.Open())
+            using (StreamGeometryContext ctx = tailGeometry.Open())
             {
                 ctx.BeginFigure(new Point(26 * scale, bodyY), true, true);
                 ctx.BezierTo(
@@ -674,9 +674,9 @@ namespace VSPets.Animation
         private void DrawClippy(DrawingContext dc, int size, PetState state, int frame)
         {
             var scale = size / 32.0;
-            var silverBrush = CreateBrush(Color.FromRgb(180, 180, 200));
-            var eyeBrush = CreateBrush(Colors.Black);
-            var eyeWhiteBrush = CreateBrush(Colors.White);
+            Brush silverBrush = CreateBrush(Color.FromRgb(180, 180, 200));
+            Brush eyeBrush = CreateBrush(Colors.Black);
+            Brush eyeWhiteBrush = CreateBrush(Colors.White);
 
             var bodyBob = state == PetState.Walking || state == PetState.Running ? Math.Sin(frame * Math.PI) * 2 : 0;
 
@@ -687,7 +687,7 @@ namespace VSPets.Animation
             pen.Freeze();
 
             var geometry = new StreamGeometry();
-            using (var ctx = geometry.Open())
+            using (StreamGeometryContext ctx = geometry.Open())
             {
                 ctx.BeginFigure(new Point(8 * scale, (28 + bodyBob) * scale), false, false);
                 ctx.BezierTo(
@@ -740,9 +740,9 @@ namespace VSPets.Animation
         private void DrawRubberDuck(DrawingContext dc, int size, PetState state, int frame)
         {
             var scale = size / 32.0;
-            var yellowBrush = CreateBrush(Color.FromRgb(255, 220, 50));
-            var orangeBrush = CreateBrush(Color.FromRgb(255, 140, 0));
-            var eyeBrush = CreateBrush(Colors.Black);
+            Brush yellowBrush = CreateBrush(Color.FromRgb(255, 220, 50));
+            Brush orangeBrush = CreateBrush(Color.FromRgb(255, 140, 0));
+            Brush eyeBrush = CreateBrush(Colors.Black);
 
             var bodyBob = state == PetState.Walking ? Math.Sin(frame * Math.PI) * 1.5 : 0;
             var waddle = state == PetState.Walking ? Math.Sin(frame * Math.PI * 2) * 2 : 0;
@@ -794,10 +794,10 @@ namespace VSPets.Animation
         private void DrawGenericPet(DrawingContext dc, int size, Color baseColor, PetState state, int frame)
         {
             var scale = size / 32.0;
-            var baseBrush = CreateBrush(baseColor);
-            var eyeBrush = CreateBrush(Colors.Black);
+            Brush baseBrush = CreateBrush(baseColor);
+            Brush eyeBrush = CreateBrush(Colors.Black);
 
-            var (_, _, bodyBob) = GetLegPositions(state, frame);
+            (double _, double _, double bodyBob) = GetLegPositions(state, frame);
 
             // Simple blob body
             dc.DrawEllipse(baseBrush, null,
@@ -856,7 +856,7 @@ namespace VSPets.Animation
         private void DrawTriangle(DrawingContext dc, Brush brush, Point p1, Point p2, Point p3)
         {
             var geometry = new StreamGeometry();
-            using (var ctx = geometry.Open())
+            using (StreamGeometryContext ctx = geometry.Open())
             {
                 ctx.BeginFigure(p1, true, true);
                 ctx.LineTo(p2, true, false);
@@ -886,7 +886,7 @@ namespace VSPets.Animation
             var end = new Point(center.X + radius * Math.Cos(endRad), center.Y - radius * Math.Sin(endRad));
 
             var geometry = new StreamGeometry();
-            using (var ctx = geometry.Open())
+            using (StreamGeometryContext ctx = geometry.Open())
             {
                 ctx.BeginFigure(start, false, false);
                 ctx.ArcTo(end, new Size(radius, radius), 0, sweepAngle > 180, SweepDirection.Counterclockwise, true, false);

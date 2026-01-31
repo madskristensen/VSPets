@@ -130,7 +130,7 @@ namespace VSPets
 
             try
             {
-                var topLeft = _statusBarPanel.PointToScreen(new Point(0, 0));
+                Point topLeft = _statusBarPanel.PointToScreen(new Point(0, 0));
                 return new Rect(topLeft.X, topLeft.Y, _statusBarPanel.ActualWidth, _statusBarPanel.ActualHeight);
             }
             catch
@@ -186,14 +186,14 @@ namespace VSPets
             var childrenCount = VisualTreeHelper.GetChildrenCount(parent);
             for (var i = 0; i < childrenCount; i++)
             {
-                var child = VisualTreeHelper.GetChild(parent, i);
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
 
                 if (child is Grid foundGrid)
                 {
                     return foundGrid;
                 }
 
-                var result = FindRootGrid(child);
+                Grid result = FindRootGrid(child);
                 if (result != null)
                 {
                     return result;
@@ -270,7 +270,7 @@ namespace VSPets
 
             for (var i = 0; i < childrenCount; i++)
             {
-                var child = VisualTreeHelper.GetChild(parent, i);
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
 
                 if (child is T typedChild)
                 {

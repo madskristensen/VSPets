@@ -1,10 +1,135 @@
-# Visual Studio Pets
+# VS Pets 🐱🐕🦊
 
 [![Build](https://github.com/madskristensen/VSPets/actions/workflows/build.yaml/badge.svg)](https://github.com/madskristensen/VSPets/actions/workflows/build.yaml)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/madskristensen)
 
-Content coming soon...
+**Bring your Visual Studio to life with adorable animated pets that walk along your status bar!**
 
-## Contributing
+Watch cats, dogs, foxes, and more stroll across the bottom of your IDE while you code. Your pets have unique personalities—they walk, run, sleep, and even react to your builds!
 
-Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/madskristensen/Modes/issues).
+<!-- TODO: Add hero screenshot/GIF showing pets walking on status bar -->
+<!-- ![VS Pets in action](art/hero.gif) -->
+
+Download from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.VSPets) or install from within Visual Studio via **Extensions > Manage Extensions**.
+
+---
+
+## ✨ Features
+
+### 🐾 Animated Companions
+
+Your pets come to life with smooth walking animations. Watch their little legs move as they explore your status bar!
+
+<!-- TODO: Add GIF showing walk animation -->
+<!-- ![Walking animation](art/walking.gif) -->
+
+### 🎉 Build Awareness
+
+Your pets celebrate with you! They show 🎉 when builds succeed and 😢 when they fail.
+
+<!-- TODO: Add screenshot of build reaction -->
+<!-- ![Build reactions](art/build-reaction.png) -->
+
+### 👋 Social Pets
+
+When two pets meet, they greet each other with a friendly wave! Each pet has its own personality with different speeds and behaviors.
+
+<!-- TODO: Add GIF of pets meeting -->
+<!-- ![Pets meeting](art/pets-meeting.gif) -->
+
+### 🎨 Multiple Pet Types
+
+Choose from a variety of pets:
+
+- 🐱 **Cats** - Orange, black, white, gray, and brown
+- 🐕 **Dogs** - Various colors including Shiba Inu style
+- 🦊 **Foxes** - Classic orange with white markings
+- 📎 **Clippy** - The legendary Office assistant returns!
+- 🦆 **Rubber Duck** - For debugging companionship
+
+<!-- TODO: Add image showing all pet types -->
+<!-- ![Pet types](art/pet-types.png) -->
+
+### 🖱️ Easy Interaction
+
+Right-click any pet to:
+
+- **Add Pet** - Quickly add another companion
+- **Rename** - Give your pet a custom name
+- **Remove** - Say goodbye (they'll wave! 👋)
+- **Settings** - Access VS Pets options
+
+<!-- TODO: Add screenshot of context menu -->
+<!-- ![Context menu](art/context-menu.png) -->
+
+### ⚙️ Fully Configurable
+
+Access settings via **Tools > Options > VS Pets**:
+
+- Maximum number of pets
+- Auto-spawn on startup
+- Pet speed (Lazy → Hyper)
+- Idle animations toggle
+- Random behaviors toggle
+- Session persistence
+
+---
+
+## 🚀 Getting Started
+
+1. Install the extension from Visual Studio Marketplace
+2. A pet will automatically appear on your status bar
+3. Right-click the pet to add more friends!
+4. Access **Extensions > VS Pets** menu for more options
+
+---
+
+## 📋 Menu Commands
+
+| Command | Description |
+|---------|-------------|
+| Add Cat | Add a random cat to your status bar |
+| Add Dog | Add a random dog to your status bar |
+| Add Fox | Add a fox to your status bar |
+| Add Clippy | Bring back the classic Office assistant |
+| Add Rubber Duck | Add a debugging companion |
+| Remove All Pets | Clear all pets from the status bar |
+
+---
+
+## 🎮 Pet Behaviors
+
+Your pets aren't just decorations—they have personality!
+
+| Behavior | What happens |
+|----------|--------------|
+| 🚶 Walking | Pets stroll across the status bar |
+| 🏃 Running | Sometimes they get energetic! |
+| 💤 Sleeping | Pets take naps with Zzz bubbles |
+| 🥱 Yawning | Random idle behavior |
+| 😌 Stretching | Pets stay limber |
+| 👀 Looking around | Curious pets explore |
+| 🐾 Ear twitch | Subtle idle animations |
+| 😊 Tail wag | Happy pets wag their tails |
+
+---
+
+## 💡 Tips
+
+- **Pets remember their names** across Visual Studio sessions
+- **White pets have outlines** so they're visible on light themes
+- **Pets walk off-screen** and re-enter from either side
+- **Each pet is unique** with slightly different speeds and behaviors
+- **Hover over a pet** to see their name and make them happy!
+
+---
+
+## 🤝 Contributing
+
+Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/madskristensen/VSPets/issues).
+
+Want to add a new pet type? Pull requests are welcome!
+
+---
+
+**Made with ❤️ for developers who appreciate a little joy in their IDE.**

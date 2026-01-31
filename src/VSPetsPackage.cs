@@ -13,6 +13,8 @@ using EnvDTE;
 using EnvDTE80;
 using VSPets.Options;
 using VSPets.Services;
+using System.Collections.Generic;
+using VSPets.Pets;
 
 namespace VSPets
 {
@@ -41,7 +43,7 @@ namespace VSPets
             try
             {
                 // Load settings
-                var settings = await General.GetLiveInstanceAsync();
+                General settings = await General.GetLiveInstanceAsync();
                 PetManager.Instance.MaxPets = Math.Max(1, Math.Min(settings.MaxPets, 10));
 
                 await PetManager.Instance.InitializeAsync();
@@ -57,12 +59,12 @@ namespace VSPets
                 // Try to restore saved pets if enabled
                 if (settings.RememberPets)
                 {
-                    var savedPets = await PetPersistenceService.LoadPetsAsync();
+                    List<PetData> savedPets = await PetPersistenceService.LoadPetsAsync();
                     if (savedPets.Any())
                     {
                         // Stagger pet spawns to avoid overlap
                         var spawnDelay = 2500; // 2.5 seconds between spawns
-                        foreach (var petData in savedPets)
+                        foreach (PetData petData in savedPets)
                         {
                             await PetManager.Instance.AddPetAsync(petData.PetType, petData.Color, petData.Name);
 
@@ -128,10 +130,10 @@ namespace VSPets
                 // Save pets before closing
                 try
                 {
-                    var settings = General.Instance;
+                    General settings = General.Instance;
                     if (settings.RememberPets)
                     {
-                        var pets = PetManager.Instance.GetPets();
+                        IReadOnlyList<IPet> pets = PetManager.Instance.GetPets();
                         var petDataList = pets.Select(p => new PetData
                         {
                             Name = p.Name,

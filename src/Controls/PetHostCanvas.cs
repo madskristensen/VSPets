@@ -15,8 +15,8 @@ namespace VSPets.Controls
     public class PetHostCanvas : Canvas
     {
         private readonly DispatcherTimer _updateTimer;
-        private readonly List<FrameworkElement> _pets = new List<FrameworkElement>();
-        private readonly object _petLock = new object();
+        private readonly List<FrameworkElement> _pets = new();
+        private readonly object _petLock = new();
 
         /// <summary>
         /// The floor Y position (bottom of the status bar in local coordinates).
@@ -242,7 +242,7 @@ namespace VSPets.Controls
         {
             try
             {
-                var screenPoint = PointToScreen(new Point(localX, 0));
+                Point screenPoint = PointToScreen(new Point(localX, 0));
                 return screenPoint.X;
             }
             catch
@@ -258,7 +258,7 @@ namespace VSPets.Controls
         {
             try
             {
-                var localPoint = PointFromScreen(new Point(screenX, 0));
+                Point localPoint = PointFromScreen(new Point(screenX, 0));
                 return localPoint.X;
             }
             catch

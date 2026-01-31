@@ -15,12 +15,12 @@ namespace VSPets.Services
     public class PetManager : IDisposable
     {
         private static PetManager _instance;
-        private static readonly object _instanceLock = new object();
+        private static readonly object _instanceLock = new();
 
-        private readonly List<IPet> _pets = new List<IPet>();
-        private readonly Dictionary<Guid, PetControl> _petControls = new Dictionary<Guid, PetControl>();
-        private readonly object _petLock = new object();
-        private readonly Random _random = new Random(); // Shared random for better variance
+        private readonly List<IPet> _pets = new();
+        private readonly Dictionary<Guid, PetControl> _petControls = new();
+        private readonly object _petLock = new();
+        private readonly Random _random = new(); // Shared random for better variance
 
         // Track last spawn side to avoid spawning multiple pets from same side
         private bool _lastSpawnedFromLeft;
@@ -157,7 +157,7 @@ namespace VSPets.Services
             }
 
             // Create the pet
-            var pet = CreatePet(petType, color);
+            IPet pet = CreatePet(petType, color);
             if (pet == null)
             {
                 return null;
@@ -246,8 +246,8 @@ namespace VSPets.Services
         public async Task<IPet> AddRandomPetAsync()
         {
             var random = new Random();
-            var petTypes = new[] { PetType.Cat, PetType.Dog, PetType.Fox };
-            var petType = petTypes[random.Next(petTypes.Length)];
+            PetType[] petTypes = new[] { PetType.Cat, PetType.Dog, PetType.Fox };
+            PetType petType = petTypes[random.Next(petTypes.Length)];
 
             return await AddPetAsync(petType);
         }
@@ -302,7 +302,7 @@ namespace VSPets.Services
                 petIds = _pets.Select(p => p.Id).ToList();
             }
 
-            foreach (var id in petIds)
+            foreach (Guid id in petIds)
             {
                 await RemovePetAsync(id);
             }
@@ -342,7 +342,7 @@ namespace VSPets.Services
                 pets = _pets.ToList();
             }
 
-            foreach (var pet in pets)
+            foreach (IPet pet in pets)
             {
                 if (pet is BasePet basePet)
                 {
@@ -384,14 +384,14 @@ namespace VSPets.Services
                 petsToUpdate = _pets.ToList();
             }
 
-            foreach (var pet in petsToUpdate)
+            foreach (IPet pet in petsToUpdate)
             {
                 try
                 {
                     pet.Update(deltaTime, canvasWidth);
 
                     // Update control position
-                    if (_petControls.TryGetValue(pet.Id, out var control))
+                    if (_petControls.TryGetValue(pet.Id, out PetControl control))
                     {
                         Canvas.SetLeft(control, pet.X);
                         Canvas.SetBottom(control, pet.Y);
@@ -426,8 +426,8 @@ namespace VSPets.Services
             {
                 for (int j = i + 1; j < pets.Count; j++)
                 {
-                    var pet1 = pets[i];
-                    var pet2 = pets[j];
+                    IPet pet1 = pets[i];
+                    IPet pet2 = pets[j];
 
                     var distance = Math.Abs(pet1.X - pet2.X);
                     var interactionDistance = (int)pet1.Size + (int)pet2.Size;
@@ -498,7 +498,7 @@ namespace VSPets.Services
 
             lock (_petLock)
             {
-                foreach (var pet in _pets)
+                foreach (IPet pet in _pets)
                 {
                     pet.Dispose();
                 }

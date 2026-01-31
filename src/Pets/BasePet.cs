@@ -1,8 +1,8 @@
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using VSPets.Animation;
 using VSPets.Models;
 
 namespace VSPets.Pets
@@ -13,7 +13,7 @@ namespace VSPets.Pets
     /// </summary>
     public abstract class BasePet : IPet
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private PetState _currentState;
         private PetDirection _direction;
         private double _x;
@@ -25,7 +25,6 @@ namespace VSPets.Pets
         private Border _container;
 
         // Idle animation state
-        private double _idleAnimationTimer;
         private double _breathingPhase;
         private double _nextBehaviorTime;
         private bool _isDoingBehavior;
@@ -39,8 +38,6 @@ namespace VSPets.Pets
 
         // Edge exit/re-entry state
         private bool _hasExitedScreen;
-        private double _reentryDelay;
-        private bool _reenterFromOpposite;
 
         // Per-pet randomization factors (set once at creation for uniqueness)
         private readonly double _speedVariation;      // 0.8 to 1.2 multiplier
@@ -48,26 +45,23 @@ namespace VSPets.Pets
         private readonly double _exitChanceVariation; // Varies exit probability
 
         // Movement speeds (pixels per second)
-        private const double WalkSpeed = 30;
-        private const double RunSpeed = 80;
-        private const double ClimbSpeed = 40;
-        private const double FallSpeed = 120;
+        private const double _walkSpeed = 30;
+        private const double _runSpeed = 80;
 
         // State durations (seconds)
-        private const double MinIdleDuration = 2.0;
-        private const double MaxIdleDuration = 8.0;
-        private const double MinWalkDuration = 3.0;
-        private const double MaxWalkDuration = 10.0;
-        private const double MinRunDuration = 2.0;
-        private const double MaxRunDuration = 5.0;
-        private const double HappyDuration = 1.5;
-        private const double LandingDuration = 0.5;
+        private const double _minIdleDuration = 2.0;
+        private const double _maxIdleDuration = 8.0;
+        private const double _minWalkDuration = 3.0;
+        private const double _maxWalkDuration = 10.0;
+        private const double _minRunDuration = 2.0;
+        private const double _maxRunDuration = 5.0;
+        private const double _happyDuration = 1.5;
 
         // Idle animation settings
-        private const double BreathingSpeed = 1.5; // cycles per second
-        private const double BreathingAmplitude = 0.03; // scale variation
-        private const double MinBehaviorInterval = 5.0;
-        private const double MaxBehaviorInterval = 15.0;
+        private const double _breathingSpeed = 1.5; // cycles per second
+        private const double _breathingAmplitude = 0.03; // scale variation
+        private const double _minBehaviorInterval = 5.0;
+        private const double _maxBehaviorInterval = 15.0;
 
         public Guid Id { get; } = Guid.NewGuid();
         public string Name { get; set; }
@@ -116,7 +110,7 @@ namespace VSPets.Pets
             Color = color;
             Name = name ?? GenerateDefaultName();
             _direction = PetDirection.Right;
-            _nextBehaviorTime = RandomRange(MinBehaviorInterval, MaxBehaviorInterval);
+            _nextBehaviorTime = RandomRange(_minBehaviorInterval, _maxBehaviorInterval);
 
             // Initialize per-pet random variations for unique movement patterns
             _speedVariation = 0.8 + _random.NextDouble() * 0.4;       // 0.8 to 1.2
@@ -137,7 +131,7 @@ namespace VSPets.Pets
         /// </summary>
         public virtual string[] GetPossibleBehaviors()
         {
-            return new[] { "yawn", "stretch", "look_around", "ear_twitch", "tail_wag" };
+            return ["yawn", "stretch", "look_around", "ear_twitch", "tail_wag"];
         }
 
         /// <summary>
@@ -183,16 +177,25 @@ namespace VSPets.Pets
             };
 
             // Set up mouse hover for happiness
-            _container.MouseEnter += (s, e) => TriggerHappy();
-            _container.MouseLeave += (s, e) => { /* Optional: end happy early */ };
+            _container.MouseEnter += OnContainerMouseEnter;
+            _container.MouseLeave += OnContainerMouseLeave;
 
             UpdateSprite();
+        }
+
+        private void OnContainerMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            TriggerHappy();
+        }
+
+        private void OnContainerMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            // Optional: end happy early
         }
 
         public void Update(double deltaTime, double canvasWidth)
         {
             _stateTimer += deltaTime;
-            _idleAnimationTimer += deltaTime;
 
             // Update frame-based animation (leg movement)
             UpdateFrameAnimation(deltaTime);
@@ -209,7 +212,7 @@ namespace VSPets.Pets
             // Check for state transitions
             if (_stateTimer >= _stateDuration)
             {
-                TransitionToNextState(canvasWidth);
+                TransitionToNextState();
             }
         }
 
@@ -239,14 +242,14 @@ namespace VSPets.Pets
             // Only breathe when idle or sleeping
             if (_currentState == PetState.Idle || _currentState == PetState.Sleeping)
             {
-                _breathingPhase += deltaTime * BreathingSpeed * 2 * Math.PI;
+                _breathingPhase += deltaTime * _breathingSpeed * 2 * Math.PI;
                 if (_breathingPhase > Math.PI * 2)
                 {
                     _breathingPhase -= Math.PI * 2;
                 }
 
                 // Sinusoidal breathing effect
-                BreathingScale = 1.0 + Math.Sin(_breathingPhase) * BreathingAmplitude;
+                BreathingScale = 1.0 + Math.Sin(_breathingPhase) * _breathingAmplitude;
             }
             else
             {
@@ -295,7 +298,7 @@ namespace VSPets.Pets
                 }
 
                 // Reset timer for next behavior
-                _nextBehaviorTime = RandomRange(MinBehaviorInterval, MaxBehaviorInterval);
+                _nextBehaviorTime = RandomRange(_minBehaviorInterval, _maxBehaviorInterval);
 
                 // End behavior after a short time
                 System.Threading.Tasks.Task.Delay(GetBehaviorDuration(_currentBehavior)).ContinueWith(_ =>
@@ -336,7 +339,7 @@ namespace VSPets.Pets
         {
             var oldX = _x;
             var oldY = _y;
-            double speedMultiplier = GetSpeedMultiplier();
+            var speedMultiplier = GetSpeedMultiplier();
 
             // Apply per-pet speed variation for unique movement
             var petSpeedFactor = speedMultiplier * _speedVariation;
@@ -344,16 +347,16 @@ namespace VSPets.Pets
             switch (_currentState)
             {
                 case PetState.Walking:
-                    MoveHorizontally(WalkSpeed * petSpeedFactor * deltaTime, canvasWidth);
+                    MoveHorizontally(_walkSpeed * petSpeedFactor * deltaTime, canvasWidth);
                     break;
 
                 case PetState.Running:
-                    MoveHorizontally(RunSpeed * petSpeedFactor * deltaTime, canvasWidth);
+                    MoveHorizontally(_runSpeed * petSpeedFactor * deltaTime, canvasWidth);
                     break;
 
                 case PetState.Exiting:
                     // Walk at normal speed off screen
-                    MoveHorizontally(WalkSpeed * petSpeedFactor * deltaTime, canvasWidth);
+                    MoveHorizontally(_walkSpeed * petSpeedFactor * deltaTime, canvasWidth);
 
                     // Check if fully off screen
                     if (_hasExitedScreen)
@@ -364,7 +367,7 @@ namespace VSPets.Pets
 
                 case PetState.Entering:
                     // Walk onto the screen
-                    MoveHorizontally(WalkSpeed * petSpeedFactor * deltaTime, canvasWidth);
+                    MoveHorizontally(_walkSpeed * petSpeedFactor * deltaTime, canvasWidth);
                     break;
             }
 
@@ -494,7 +497,7 @@ namespace VSPets.Pets
             };
         }
 
-        private void TransitionToNextState(double canvasWidth)
+        private void TransitionToNextState()
         {
             // If returning from temporary state (like Happy)
             if (_returnToState.HasValue)
@@ -504,11 +507,11 @@ namespace VSPets.Pets
                 return;
             }
 
-            var nextState = ChooseNextState(canvasWidth);
+            PetState nextState = ChooseNextState();
             SetState(nextState);
         }
 
-        private PetState ChooseNextState(double canvasWidth)
+        private PetState ChooseNextState()
         {
             // Normal state transitions
             var roll = _random.NextDouble();
@@ -545,13 +548,13 @@ namespace VSPets.Pets
 
         public void SetState(PetState state)
         {
-            var oldState = _currentState;
+            PetState oldState = _currentState;
             _currentState = state;
             _stateTimer = 0;
             _stateDuration = GetStateDuration(state);
 
             // Initialize frame animation for this state
-            var renderer = Animation.ProceduralSpriteRenderer.Instance;
+            ProceduralSpriteRenderer renderer = Animation.ProceduralSpriteRenderer.Instance;
             _currentFrame = 0;
             _frameTimer = 0;
             _frameCount = renderer.GetFrameCount(state);
@@ -584,11 +587,11 @@ namespace VSPets.Pets
             // Apply per-pet variation to state durations for unique timing
             var baseDuration = state switch
             {
-                PetState.Idle => RandomRange(MinIdleDuration, MaxIdleDuration),
-                PetState.Walking => RandomRange(MinWalkDuration, MaxWalkDuration),
-                PetState.Running => RandomRange(MinRunDuration, MaxRunDuration),
+                PetState.Idle => RandomRange(_minIdleDuration, _maxIdleDuration),
+                PetState.Walking => RandomRange(_minWalkDuration, _maxWalkDuration),
+                PetState.Running => RandomRange(_minRunDuration, _maxRunDuration),
                 PetState.Sleeping => RandomRange(5, 15),
-                PetState.Happy => HappyDuration,
+                PetState.Happy => _happyDuration,
                 PetState.Exiting => 30.0, // Long duration - will be cut short when off screen
                 PetState.Entering => 30.0, // Long duration - will transition to Walking when on screen
                 _ => 3.0
@@ -703,8 +706,8 @@ namespace VSPets.Pets
         private void UpdateSprite()
         {
             // Use the procedural sprite renderer for animated frames
-            var renderer = Animation.ProceduralSpriteRenderer.Instance;
-            var sprite = renderer.RenderFrame(PetType, Color, _currentState, _currentFrame, (int)Size);
+            ProceduralSpriteRenderer renderer = Animation.ProceduralSpriteRenderer.Instance;
+            BitmapSource sprite = renderer.RenderFrame(PetType, Color, _currentState, _currentFrame, (int)Size);
 
             if (sprite != null)
             {
@@ -740,7 +743,11 @@ namespace VSPets.Pets
 
         public virtual void Dispose()
         {
-            _container?.MouseEnter -= (s, e) => TriggerHappy();
+            if (_container != null)
+            {
+                _container.MouseEnter -= OnContainerMouseEnter;
+                _container.MouseLeave -= OnContainerMouseLeave;
+            }
             _spriteImage = null;
             _container = null;
         }

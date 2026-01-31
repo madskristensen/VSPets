@@ -10,7 +10,7 @@ namespace VSPets.Animation
     /// </summary>
     public class PetStateMachine
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
         private readonly Dictionary<PetState, StateTransition[]> _transitions;
 
         /// <summary>
@@ -47,10 +47,10 @@ namespace VSPets.Animation
 
             if (StateTimeRemaining <= 0)
             {
-                var newState = ChooseNextState(context);
+                PetState newState = ChooseNextState(context);
                 if (newState != CurrentState)
                 {
-                    var oldState = CurrentState;
+                    PetState oldState = CurrentState;
                     CurrentState = newState;
                     StateTimeRemaining = GetStateDuration(newState);
 
@@ -74,7 +74,7 @@ namespace VSPets.Animation
         /// </summary>
         public void ForceState(PetState state)
         {
-            var oldState = CurrentState;
+            PetState oldState = CurrentState;
             CurrentState = state;
             StateTimeRemaining = GetStateDuration(state);
 
@@ -93,7 +93,7 @@ namespace VSPets.Animation
         /// </summary>
         public void TriggerTemporaryState(PetState temporaryState, PetState returnState)
         {
-            var oldState = CurrentState;
+            PetState oldState = CurrentState;
             CurrentState = temporaryState;
             StateTimeRemaining = GetStateDuration(temporaryState);
 
@@ -107,7 +107,7 @@ namespace VSPets.Animation
 
         private PetState ChooseNextState(StateContext context)
         {
-            if (!_transitions.TryGetValue(CurrentState, out var possibleTransitions))
+            if (!_transitions.TryGetValue(CurrentState, out StateTransition[] possibleTransitions))
             {
                 return PetState.Idle;
             }
@@ -116,7 +116,7 @@ namespace VSPets.Animation
             var roll = _random.NextDouble();
             double cumulativeProbability = 0;
 
-            foreach (var transition in possibleTransitions)
+            foreach (StateTransition transition in possibleTransitions)
             {
                 cumulativeProbability += transition.Probability;
                 if (roll <= cumulativeProbability)

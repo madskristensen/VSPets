@@ -1,4 +1,5 @@
 using VSPets.Models;
+using VSPets.Pets;
 using VSPets.Services;
 
 namespace VSPets.Commands
@@ -10,7 +11,7 @@ namespace VSPets.Commands
         {
             try
             {
-                var pet = await PetManager.Instance.AddPetAsync(PetType.Cat);
+                IPet pet = await PetManager.Instance.AddPetAsync(PetType.Cat);
 
                 if (pet != null)
                 {

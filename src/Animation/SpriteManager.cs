@@ -13,12 +13,12 @@ namespace VSPets.Animation
     public class SpriteManager
     {
         private static readonly Lazy<SpriteManager> _instance = 
-            new Lazy<SpriteManager>(() => new SpriteManager());
+            new(() => new SpriteManager());
 
         private readonly Dictionary<string, BitmapImage> _spriteCache = 
-            new Dictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
+            new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly object _cacheLock = new object();
+        private readonly object _cacheLock = new();
 
         /// <summary>
         /// Gets the singleton instance of the sprite manager.
@@ -42,12 +42,12 @@ namespace VSPets.Animation
 
             lock (_cacheLock)
             {
-                if (_spriteCache.TryGetValue(key, out var cached))
+                if (_spriteCache.TryGetValue(key, out BitmapImage cached))
                 {
                     return cached;
                 }
 
-                var sprite = LoadSprite(petType, color, animationName);
+                BitmapImage sprite = LoadSprite(petType, color, animationName);
                 if (sprite != null)
                 {
                     _spriteCache[key] = sprite;
@@ -184,7 +184,7 @@ namespace VSPets.Animation
         /// </summary>
         public bool SpriteExists(PetType petType, PetColor color, string animationName)
         {
-            var sprite = GetSprite(petType, color, animationName);
+            BitmapImage sprite = GetSprite(petType, color, animationName);
             return sprite != null;
         }
     }

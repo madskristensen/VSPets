@@ -1,3 +1,4 @@
+using VSPets.Pets;
 using VSPets.Services;
 
 namespace VSPets.Commands
@@ -9,7 +10,7 @@ namespace VSPets.Commands
         {
             try
             {
-                var pet = await PetManager.Instance.AddRandomPetAsync();
+                IPet pet = await PetManager.Instance.AddRandomPetAsync();
 
                 if (pet != null)
                 {

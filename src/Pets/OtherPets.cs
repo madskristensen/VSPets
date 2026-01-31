@@ -15,7 +15,7 @@ namespace VSPets.Pets
             "Robin", "Swift", "Dash", "Finn", "Redd", "Scarlet"
         };
 
-        private static readonly Random NameRandom = new Random();
+        private static readonly Random NameRandom = new();
 
         public Fox(PetColor color = PetColor.Red, string name = null) 
             : base(color, name)
@@ -46,8 +46,8 @@ namespace VSPets.Pets
 
         public static Fox CreateRandom()
         {
-            var colors = new[] { PetColor.Red, PetColor.White };
-            var color = colors[NameRandom.Next(colors.Length)];
+            PetColor[] colors = new[] { PetColor.Red, PetColor.White };
+            PetColor color = colors[NameRandom.Next(colors.Length)];
             return new Fox(color);
         }
     }

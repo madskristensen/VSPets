@@ -1,4 +1,3 @@
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,11 +18,10 @@ namespace VSPets.Controls
     {
         private IPet _pet;
         private BasePet _basePet; // For accessing breathing/behavior
-        private DispatcherTimer _speechTimer;
-        private DispatcherTimer _breathingTimer;
-        private bool _isHovered;
-        private ScaleTransform _breathingTransform;
-        private ScaleTransform _flipTransform;
+        private readonly DispatcherTimer _speechTimer;
+        private readonly DispatcherTimer _breathingTimer;
+        private readonly ScaleTransform _breathingTransform;
+        private readonly ScaleTransform _flipTransform;
 
         /// <summary>
         /// Gets or sets the pet this control displays.
@@ -320,11 +318,11 @@ namespace VSPets.Controls
 
             // Use the procedural sprite renderer with the current animation frame
             var frame = _basePet?.CurrentFrame ?? 0;
-            var sprite = ProceduralSpriteRenderer.Instance.RenderFrame(
-                _pet.PetType, 
-                _pet.Color, 
-                _pet.CurrentState, 
-                frame, 
+            BitmapSource sprite = ProceduralSpriteRenderer.Instance.RenderFrame(
+                _pet.PetType,
+                _pet.Color,
+                _pet.CurrentState,
+                frame,
                 (int)_pet.Size);
 
             if (sprite != null)
@@ -369,8 +367,6 @@ namespace VSPets.Controls
 
         private void OnMouseEnter(object sender, MouseEventArgs e)
         {
-            _isHovered = true;
-
             // Show name label
             NameLabel.Visibility = Visibility.Visible;
 
@@ -383,8 +379,6 @@ namespace VSPets.Controls
 
         private void OnMouseLeave(object sender, MouseEventArgs e)
         {
-            _isHovered = false;
-
             // Hide name label
             NameLabel.Visibility = Visibility.Collapsed;
 
@@ -415,33 +409,33 @@ namespace VSPets.Controls
             };
 
             var stackPanel = new StackPanel { Margin = new Thickness(10) };
-            var label = new TextBlock 
-            { 
+            var label = new TextBlock
+            {
                 Text = $"Enter a new name for {_pet.Name}:",
                 Margin = new Thickness(0, 0, 0, 8)
             };
-            var textBox = new TextBox 
-            { 
+            var textBox = new TextBox
+            {
                 Text = _pet.Name,
                 Margin = new Thickness(0, 0, 0, 10)
             };
             textBox.SelectAll();
 
-            var buttonPanel = new StackPanel 
-            { 
+            var buttonPanel = new StackPanel
+            {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Right
             };
-            var okButton = new Button 
-            { 
-                Content = "OK", 
-                Width = 75, 
+            var okButton = new Button
+            {
+                Content = "OK",
+                Width = 75,
                 Margin = new Thickness(0, 0, 8, 0),
                 IsDefault = true
             };
-            var cancelButton = new Button 
-            { 
-                Content = "Cancel", 
+            var cancelButton = new Button
+            {
+                Content = "Cancel",
                 Width = 75,
                 IsCancel = true
             };
