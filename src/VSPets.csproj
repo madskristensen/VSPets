@@ -48,17 +48,15 @@
     <Compile Include="Animation\PetStateMachine.cs" />
     <Compile Include="Animation\ProceduralSpriteRenderer.cs" />
     <Compile Include="Animation\SpriteManager.cs" />
-    <Compile Include="Commands\AddCatCommand.cs" />
-    <Compile Include="Commands\AddClippyCommand.cs" />
-    <Compile Include="Commands\AddDogCommand.cs" />
-    <Compile Include="Commands\AddFoxCommand.cs" />
     <Compile Include="Commands\AddPetCommand.cs" />
-    <Compile Include="Commands\AddRubberDuckCommand.cs" />
     <Compile Include="Commands\RemoveAllPetsCommand.cs" />
     <Compile Include="Controls\PetControl.xaml.cs">
       <DependentUpon>PetControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\PetHostCanvas.cs" />
+    <Compile Include="Controls\PetSelectionDialog.xaml.cs">
+      <DependentUpon>PetSelectionDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Models\PetEnums.cs" />
     <Compile Include="Models\PetState.cs" />
     <Compile Include="Options\General.cs" />
@@ -127,6 +125,9 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\PetControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\PetSelectionDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

@@ -31,55 +31,8 @@
         <Icon guid="ImageCatalogGuid" id="Add" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
-          <ButtonText>Add Pet</ButtonText>
+          <ButtonText>Add Pet...</ButtonText>
           <LocCanonicalName>.VSPets.AddPet</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Add Cat Command -->
-      <Button guid="VSPets" id="AddCatCommand" priority="0x0110" type="Button">
-        <Parent guid="VSPets" id="VSPetsMenuGroup" />
-        <!--<Icon guid="ImageCatalogGuid" id="Cat" />
-        <CommandFlag>IconIsMoniker</CommandFlag>-->
-        <Strings>
-          <ButtonText>Add Cat 🐱</ButtonText>
-          <LocCanonicalName>.VSPets.AddCat</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Add Dog Command -->
-      <Button guid="VSPets" id="AddDogCommand" priority="0x0120" type="Button">
-        <Parent guid="VSPets" id="VSPetsMenuGroup" />
-        <Strings>
-          <ButtonText>Add Dog 🐕</ButtonText>
-          <LocCanonicalName>.VSPets.AddDog</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Add Fox Command -->
-      <Button guid="VSPets" id="AddFoxCommand" priority="0x0130" type="Button">
-        <Parent guid="VSPets" id="VSPetsMenuGroup" />
-        <Strings>
-          <ButtonText>Add Fox 🦊</ButtonText>
-          <LocCanonicalName>.VSPets.AddFox</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Add Clippy Command -->
-      <Button guid="VSPets" id="AddClippyCommand" priority="0x0140" type="Button">
-        <Parent guid="VSPets" id="VSPetsMenuGroup" />
-        <Strings>
-          <ButtonText>Add Clippy 📎</ButtonText>
-          <LocCanonicalName>.VSPets.AddClippy</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Add Rubber Duck Command -->
-      <Button guid="VSPets" id="AddRubberDuckCommand" priority="0x0150" type="Button">
-        <Parent guid="VSPets" id="VSPetsMenuGroup" />
-        <Strings>
-          <ButtonText>Add Rubber Duck 🦆</ButtonText>
-          <LocCanonicalName>.VSPets.AddRubberDuck</LocCanonicalName>
         </Strings>
       </Button>
 

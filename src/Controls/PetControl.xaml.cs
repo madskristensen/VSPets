@@ -601,8 +601,23 @@ namespace VSPets.Controls
 
         private async void OnAddPetClick(object sender, RoutedEventArgs e)
         {
-            // Add a random pet
-            await Services.PetManager.Instance.AddRandomPetAsync();
+            // Add a pet via the selection dialog
+            try
+            {
+                var dialog = new PetSelectionDialog();
+                // Ensure dialog is modal to VS
+                var window = new System.Windows.Interop.WindowInteropHelper(dialog);
+                window.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+
+                if (dialog.ShowDialog() == true)
+                {
+                    await Services.PetManager.Instance.AddPetAsync(dialog.SelectedPetType, dialog.SelectedColor);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"VSPets: AddPet from context menu failed: {ex.Message}");
+            }
         }
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)

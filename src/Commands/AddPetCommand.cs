@@ -1,3 +1,6 @@
+using System.Windows.Interop;
+using VSPets.Controls;
+using VSPets.Models;
 using VSPets.Pets;
 using VSPets.Services;
 
@@ -10,15 +13,25 @@ namespace VSPets.Commands
         {
             try
             {
-                IPet pet = await PetManager.Instance.AddRandomPetAsync();
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                if (pet != null)
+                var dialog = new PetSelectionDialog();
+                // Ensure dialog is modal to VS
+                var window = new System.Windows.Interop.WindowInteropHelper(dialog);
+                window.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+
+                if (dialog.ShowDialog() == true)
                 {
-                    await VS.StatusBar.ShowMessageAsync($"🐾 {pet.Name} the {pet.PetType} joined your IDE!");
-                }
-                else
-                {
-                    await VS.StatusBar.ShowMessageAsync($"🐾 Maximum pets reached ({PetManager.Instance.MaxPets})");
+                    IPet pet = await PetManager.Instance.AddPetAsync(dialog.SelectedPetType, dialog.SelectedColor);
+
+                    if (pet != null)
+                    {
+                        await VS.StatusBar.ShowMessageAsync($"🐾 {pet.Name} the {pet.PetType} joined your IDE!");
+                    }
+                    else
+                    {
+                        await VS.StatusBar.ShowMessageAsync($"🐾 Maximum pets reached ({PetManager.Instance.MaxPets})");
+                    }
                 }
             }
             catch (Exception ex)

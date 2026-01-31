@@ -350,7 +350,7 @@ namespace VSPets.Services
             System.Diagnostics.Debug.WriteLine($"VSPets: Notified {pets.Count} pets of build {(success ? "success" : "failure")}");
         }
 
-        private IPet CreatePet(PetType petType, PetColor? color)
+        public IPet CreatePet(PetType petType, PetColor? color)
         {
             return petType switch
             {
