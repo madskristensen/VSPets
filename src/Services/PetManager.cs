@@ -242,7 +242,7 @@ namespace VSPets.Services
         /// </summary>
         public async Task<IPet> AddRandomPetAsync()
         {
-            PetType[] petTypes = [PetType.Cat, PetType.Dog, PetType.Fox];
+            PetType[] petTypes = [PetType.Cat, PetType.Dog, PetType.Fox, PetType.Bear, PetType.Axolotl];
             PetType petType = petTypes[_random.Next(petTypes.Length)];
 
             return await AddPetAsync(petType);
@@ -312,7 +312,7 @@ namespace VSPets.Services
         {
             lock (_petLock)
             {
-                return _pets.ToList();
+                return [.. _pets];
             }
         }
 
@@ -357,8 +357,10 @@ namespace VSPets.Services
                 PetType.Cat => color.HasValue ? new Cat(color.Value) : Cat.CreateRandom(),
                 PetType.Dog => color.HasValue ? new Dog(color.Value) : Dog.CreateRandom(),
                 PetType.Fox => color.HasValue ? new Fox(color.Value) : Fox.CreateRandom(),
+                PetType.Bear => color.HasValue ? new Bear(color.Value) : Bear.CreateRandom(),
+                PetType.Axolotl => color.HasValue ? new Axolotl(color.Value) : Axolotl.CreateRandom(),
                 PetType.Clippy => new Clippy(),
-                PetType.RubberDuck => new RubberDuck(),
+                PetType.RubberDuck => color.HasValue ? new RubberDuck(color.Value) : RubberDuck.CreateRandom(),
                 _ => Cat.CreateRandom()
             };
         }

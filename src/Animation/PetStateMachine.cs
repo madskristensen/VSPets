@@ -153,39 +153,39 @@ namespace VSPets.Animation
         {
             return new Dictionary<PetState, StateTransition[]>
             {
-                [PetState.Idle] = new[]
-                {
+                [PetState.Idle] =
+                [
                     new StateTransition(PetState.Idle, 0.35),
                     new StateTransition(PetState.Walking, 0.35),
                     new StateTransition(PetState.Running, 0.15),
                     new StateTransition(PetState.Sleeping, 0.15)
-                },
+                ],
 
-                [PetState.Walking] = new[]
-                {
+                [PetState.Walking] =
+                [
                     new StateTransition(PetState.Walking, 0.40),
                     new StateTransition(PetState.Idle, 0.30),
                     new StateTransition(PetState.Running, 0.20),
                     new StateTransition(PetState.Sleeping, 0.10)
-                },
+                ],
 
-                [PetState.Running] = new[]
-                {
+                [PetState.Running] =
+                [
                     new StateTransition(PetState.Walking, 0.40),
                     new StateTransition(PetState.Idle, 0.35),
                     new StateTransition(PetState.Running, 0.25)
-                },
+                ],
 
-                [PetState.Sleeping] = new[]
-                {
+                [PetState.Sleeping] =
+                [
                     new StateTransition(PetState.Sleeping, 0.60),
                     new StateTransition(PetState.Idle, 0.40)
-                },
+                ],
 
-                [PetState.Happy] = new[]
-                {
+                [PetState.Happy] =
+                [
                     new StateTransition(PetState.Idle, 1.0)
-                }
+                ]
             };
         }
     }

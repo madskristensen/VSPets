@@ -25,6 +25,7 @@ namespace VSPets
     {
         private DTE2 _dte;
         private EnvDTE.BuildEvents _buildEvents;
+        private readonly Random _startupRandom = new();
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -59,7 +60,6 @@ namespace VSPets
                     if (savedPets.Any())
                     {
                         // Stagger pet spawns to avoid overlap
-                        var spawnDelay = 2500; // 2.5 seconds between spawns
                         foreach (PetData petData in savedPets)
                         {
                             await PetManager.Instance.AddPetAsync(petData.PetType, petData.Color, petData.Name);
@@ -67,6 +67,8 @@ namespace VSPets
                             // Wait before spawning next pet (except for the last one)
                             if (petData != savedPets.Last())
                             {
+                                // Randomize spacing between pets to feel natural
+                                var spawnDelay = _startupRandom.Next(4000, 10001); // 4-10 seconds
                                 await Task.Delay(spawnDelay, cancellationToken);
                             }
                         }

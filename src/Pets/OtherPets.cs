@@ -1,4 +1,3 @@
-using System;
 using VSPets.Models;
 
 namespace VSPets.Pets
@@ -6,21 +5,16 @@ namespace VSPets.Pets
     /// <summary>
     /// Fox pet implementation.
     /// </summary>
-    public class Fox : BasePet
+    public class Fox(PetColor color = PetColor.Red, string name = null) : BasePet(color, name)
     {
-        private static readonly string[] FoxNames =
-        {
+        private static readonly string[] _foxNames =
+        [
             "Firefox", "Foxy", "Rusty", "Copper", "Amber", "Ginger",
             "Scout", "Blaze", "Autumn", "Maple", "Hazel", "Crimson",
             "Robin", "Swift", "Dash", "Finn", "Redd", "Scarlet"
-        };
+        ];
 
-        private static readonly Random NameRandom = new();
-
-        public Fox(PetColor color = PetColor.Red, string name = null) 
-            : base(color, name)
-        {
-        }
+        private static readonly Random _nameRandom = new();
 
         public override PetType PetType => PetType.Fox;
 
@@ -32,22 +26,22 @@ namespace VSPets.Pets
 
         public override PetColor[] GetPossibleColors()
         {
-            return new[]
-            {
+            return
+            [
                 PetColor.Red,   // Red fox
                 PetColor.White  // Arctic fox
-            };
+            ];
         }
 
         protected override string GenerateDefaultName()
         {
-            return FoxNames[NameRandom.Next(FoxNames.Length)];
+            return _foxNames[_nameRandom.Next(_foxNames.Length)];
         }
 
         public static Fox CreateRandom()
         {
-            PetColor[] colors = new[] { PetColor.Red, PetColor.White };
-            PetColor color = colors[NameRandom.Next(colors.Length)];
+            PetColor[] colors = [PetColor.Red, PetColor.White];
+            PetColor color = colors[_nameRandom.Next(colors.Length)];
             return new Fox(color);
         }
     }
@@ -55,13 +49,8 @@ namespace VSPets.Pets
     /// <summary>
     /// Clippy pet - the classic Office assistant!
     /// </summary>
-    public class Clippy : BasePet
+    public class Clippy(string name = null) : BasePet(PetColor.Original, name ?? "Clippy")
     {
-        public Clippy(string name = null) 
-            : base(PetColor.Original, name ?? "Clippy")
-        {
-        }
-
         public override PetType PetType => PetType.Clippy;
 
         public override string HelloMessage => "It looks like you're writing code. Would you like help? 📎";
@@ -72,7 +61,7 @@ namespace VSPets.Pets
 
         public override PetColor[] GetPossibleColors()
         {
-            return new[] { PetColor.Original };
+            return [PetColor.Original];
         }
 
         protected override string GenerateDefaultName()
@@ -99,8 +88,15 @@ namespace VSPets.Pets
     /// </summary>
     public class RubberDuck : BasePet
     {
-        public RubberDuck(string name = null) 
+        private static readonly Random _colorRandom = new();
+
+        public RubberDuck(string name = null)
             : base(PetColor.Yellow, name ?? "Ducky")
+        {
+        }
+
+        public RubberDuck(PetColor color, string name = null)
+            : base(color, name ?? "Ducky")
         {
         }
 
@@ -117,12 +113,38 @@ namespace VSPets.Pets
 
         public override PetColor[] GetPossibleColors()
         {
-            return new[] { PetColor.Yellow };
+            return
+            [
+                PetColor.Yellow,
+                PetColor.White,
+                PetColor.Black,
+                PetColor.Blue,
+                PetColor.Pink,
+                PetColor.Gold,
+                PetColor.Orange
+            ];
         }
 
         protected override string GenerateDefaultName()
         {
             return "Ducky";
+        }
+
+        public static RubberDuck CreateRandom()
+        {
+            PetColor[] colors =
+            [
+                PetColor.Yellow,
+                PetColor.White,
+                PetColor.Black,
+                PetColor.Blue,
+                PetColor.Pink,
+                PetColor.Gold,
+                PetColor.Orange
+            ];
+
+            PetColor color = colors[_colorRandom.Next(colors.Length)];
+            return new RubberDuck(color);
         }
     }
 }

@@ -86,6 +86,12 @@ namespace VSPets.Pets
         public abstract string Emoji { get; }
 
         /// <summary>
+        /// Indicates whether the base sprite artwork faces left by default.
+        /// Most pets do; some (e.g., axolotl, bear) face right and need inverted flipping.
+        /// </summary>
+        public virtual bool FacesLeftByDefault => true;
+
+        /// <summary>
         /// Current breathing animation scale (1.0 = normal).
         /// </summary>
         public double BreathingScale { get; private set; } = 1.0;
@@ -807,8 +813,12 @@ namespace VSPets.Pets
 
         private void UpdateSpriteDirection()
         {
-            // Sprite is drawn facing LEFT, so flip when moving RIGHT
-            var scaleX = _direction == PetDirection.Right ? -1 : 1;
+            // Flip based on the artwork's default facing direction
+            var facesLeft = FacesLeftByDefault;
+            var scaleX = facesLeft
+                ? (_direction == PetDirection.Right ? -1 : 1)
+                : (_direction == PetDirection.Left ? -1 : 1);
+
             _spriteImage.RenderTransform = new ScaleTransform(scaleX, 1);
         }
 

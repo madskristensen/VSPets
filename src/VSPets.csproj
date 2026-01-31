@@ -60,7 +60,9 @@
     <Compile Include="Models\PetEnums.cs" />
     <Compile Include="Models\PetState.cs" />
     <Compile Include="Options\General.cs" />
+    <Compile Include="Pets\Axolotl.cs" />
     <Compile Include="Pets\BasePet.cs" />
+    <Compile Include="Pets\Bear.cs" />
     <Compile Include="Pets\Cat.cs" />
     <Compile Include="Pets\Dog.cs" />
     <Compile Include="Pets\IPet.cs" />

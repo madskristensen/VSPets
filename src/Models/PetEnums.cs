@@ -8,6 +8,8 @@ namespace VSPets.Models
         Cat,
         Dog,
         Fox,
+        Bear,
+        Axolotl,
         Clippy,
         RubberDuck
     }
@@ -33,6 +35,11 @@ namespace VSPets.Models
 
         // Fox-specific
         // Uses Red and White
+
+        // Axolotl-specific
+        Pink,
+        Blue,
+        Gold,
 
         // Special
         Yellow,   // Rubber duck

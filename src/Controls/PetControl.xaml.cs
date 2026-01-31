@@ -279,8 +279,11 @@ namespace VSPets.Controls
         /// </summary>
         public void SetDirection(PetDirection direction)
         {
-            // Sprite is drawn facing left by default, so flip when moving right
-            _flipTransform.ScaleX = direction == PetDirection.Right ? -1 : 1;
+            var facesLeft = _basePet?.FacesLeftByDefault ?? true;
+            // Flip based on the pet's artwork orientation
+            _flipTransform.ScaleX = facesLeft
+                ? (direction == PetDirection.Right ? -1 : 1)
+                : (direction == PetDirection.Left ? -1 : 1);
         }
 
         /// <summary>

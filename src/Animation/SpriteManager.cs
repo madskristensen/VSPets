@@ -149,8 +149,8 @@ namespace VSPets.Animation
 
         private static string[] GetAnimationNames()
         {
-            return new[]
-            {
+            return
+            [
                 "idle",
                 "walk",
                 "walk_fast",
@@ -162,7 +162,7 @@ namespace VSPets.Animation
                 "fall_from_grab",
                 "land",
                 "with_ball"
-            };
+            ];
         }
 
         /// <summary>

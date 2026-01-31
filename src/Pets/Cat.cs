@@ -9,12 +9,12 @@ namespace VSPets.Pets
     public class Cat : BasePet
     {
         private static readonly string[] CatNames =
-        {
+        [
             "Whiskers", "Luna", "Milo", "Bella", "Oliver", "Leo", "Cleo",
             "Simba", "Shadow", "Nala", "Felix", "Ginger", "Mittens", "Smokey",
             "Tiger", "Misty", "Salem", "Oreo", "Patches", "Socks", "Pumpkin",
             "Binx", "Ghost", "Midnight", "Snowball", "Garfield", "Tom", "Sylvester"
-        };
+        ];
 
         private static readonly Random NameRandom = new();
 
@@ -36,15 +36,15 @@ namespace VSPets.Pets
 
         public override PetColor[] GetPossibleColors()
         {
-            return new[]
-            {
+            return
+            [
                 PetColor.Black,
                 PetColor.White,
                 PetColor.Brown,
                 PetColor.Gray,
                 PetColor.Orange,
                 PetColor.LightBrown
-            };
+            ];
         }
 
         protected override string GenerateDefaultName()
@@ -57,7 +57,7 @@ namespace VSPets.Pets
         /// </summary>
         public static Cat CreateRandom()
         {
-            PetColor[] colors = new[] { PetColor.Black, PetColor.White, PetColor.Orange, PetColor.Gray, PetColor.Brown };
+            PetColor[] colors = [PetColor.Black, PetColor.White, PetColor.Orange, PetColor.Gray, PetColor.Brown];
             PetColor color = colors[NameRandom.Next(colors.Length)];
             return new Cat(color);
         }

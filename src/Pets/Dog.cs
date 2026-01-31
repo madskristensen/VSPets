@@ -9,12 +9,12 @@ namespace VSPets.Pets
     public class Dog : BasePet
     {
         private static readonly string[] DogNames =
-        {
+        [
             "Buddy", "Max", "Charlie", "Cooper", "Rocky", "Bear", "Duke",
             "Tucker", "Jack", "Bailey", "Buster", "Cody", "Jake", "Murphy",
             "Lucky", "Scout", "Rusty", "Oscar", "Winston", "Zeus", "Finn",
             "Rex", "Bruno", "Archie", "Toby", "Dexter", "Gus", "Louie"
-        };
+        ];
 
         private static readonly Random NameRandom = new();
 
@@ -36,14 +36,14 @@ namespace VSPets.Pets
 
         public override PetColor[] GetPossibleColors()
         {
-            return new[]
-            {
+            return
+            [
                 PetColor.Black,
                 PetColor.White,
                 PetColor.Brown,
                 PetColor.Red,     // Shiba
                 PetColor.Akita
-            };
+            ];
         }
 
         protected override string GenerateDefaultName()
@@ -65,7 +65,7 @@ namespace VSPets.Pets
         /// </summary>
         public static Dog CreateRandom()
         {
-            PetColor[] colors = new[] { PetColor.Black, PetColor.White, PetColor.Brown, PetColor.Red };
+            PetColor[] colors = [PetColor.Black, PetColor.White, PetColor.Brown, PetColor.Red];
             PetColor color = colors[NameRandom.Next(colors.Length)];
             return new Dog(color);
         }
