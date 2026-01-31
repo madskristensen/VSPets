@@ -20,22 +20,23 @@ Download from the [Visual Studio Marketplace](https://marketplace.visualstudio.c
 
 Your pets come to life with smooth walking animations. Watch their little legs move as they explore your status bar!
 
-<!-- TODO: Add GIF showing walk animation -->
-<!-- ![Walking animation](art/walking.gif) -->
+![Walking animation](art/pets-walking.gif)
 
 ### 🎉 Build Awareness
 
 Your pets celebrate with you! They show 🎉 when builds succeed and 😢 when they fail.
 
-<!-- TODO: Add screenshot of build reaction -->
-<!-- ![Build reactions](art/build-reaction.png) -->
+Build succeeded:  
+![Build Succeeded](art/build-succeeded.png)
+
+Build failed:  
+![Build Failed](art/build-failed.png)
 
 ### 👋 Social Pets
 
 When two pets meet, they greet each other with a friendly wave! Each pet has its own personality with different speeds and behaviors.
 
-<!-- TODO: Add GIF of pets meeting -->
-<!-- ![Pets meeting](art/pets-meeting.gif) -->
+![Pets Meeting](art/pets-meeting.png)
 
 ### 🎨 Multiple Pet Types
 
@@ -47,9 +48,6 @@ Choose from a variety of pets:
 - 📎 **Clippy** - The legendary Office assistant returns!
 - 🦆 **Rubber Duck** - For debugging companionship
 
-<!-- TODO: Add image showing all pet types -->
-<!-- ![Pet types](art/pet-types.png) -->
-
 ### 🖱️ Easy Interaction
 
 Right-click any pet to:
@@ -59,8 +57,7 @@ Right-click any pet to:
 - **Remove** - Say goodbye (they'll wave! 👋)
 - **Settings** - Access VS Pets options
 
-<!-- TODO: Add screenshot of context menu -->
-<!-- ![Context menu](art/context-menu.png) -->
+![Context menu](art/context-menu.png)
 
 ### ⚙️ Fully Configurable
 
@@ -72,6 +69,8 @@ Access settings via **Tools > Options > VS Pets**:
 - Idle animations toggle
 - Random behaviors toggle
 - Session persistence
+
+![Options](art/options.png)
 
 ---
 

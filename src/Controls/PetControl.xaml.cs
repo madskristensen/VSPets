@@ -228,7 +228,7 @@ namespace VSPets.Controls
             var rotateTransform = new RotateTransform();
             PetSprite.RenderTransform = new TransformGroup
             {
-                Children = { _breathingTransform, rotateTransform }
+                Children = { _flipTransform, _breathingTransform, rotateTransform }
             };
             rotateTransform.BeginAnimation(RotateTransform.AngleProperty, animation);
 
@@ -236,7 +236,11 @@ namespace VSPets.Controls
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
             timer.Tick += (s, e) =>
             {
-                PetSprite.RenderTransform = _breathingTransform;
+                // Restore the standard transform group with flip and breathing
+                var transformGroup = new TransformGroup();
+                transformGroup.Children.Add(_flipTransform);
+                transformGroup.Children.Add(_breathingTransform);
+                PetSprite.RenderTransform = transformGroup;
                 timer.Stop();
             };
             timer.Start();
@@ -336,7 +340,7 @@ namespace VSPets.Controls
             if (_pet != null)
             {
                 NameText.Text = $"{_pet.Name} {_pet.Emoji}";
-                ToolTip = $"{_pet.Name} the {_pet.PetType}";
+                // ToolTip removed - using NameLabel instead to avoid duplication
             }
         }
 

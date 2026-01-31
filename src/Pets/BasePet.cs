@@ -172,8 +172,8 @@ namespace VSPets.Pets
                 Background = Brushes.Transparent,
                 Child = _spriteImage,
                 IsHitTestVisible = true,
-                Cursor = System.Windows.Input.Cursors.Hand,
-                ToolTip = $"{Name} ({Emoji})"
+                Cursor = System.Windows.Input.Cursors.Hand
+                // ToolTip removed - using NameLabel in PetControl instead
             };
 
             // Set up mouse hover for happiness
@@ -727,8 +727,8 @@ namespace VSPets.Pets
 
         private void UpdateSpriteDirection()
         {
-            // Flip horizontally for left-facing
-            var scaleX = _direction == PetDirection.Left ? -1 : 1;
+            // Sprite is drawn facing LEFT, so flip when moving RIGHT
+            var scaleX = _direction == PetDirection.Right ? -1 : 1;
             _spriteImage.RenderTransform = new ScaleTransform(scaleX, 1);
         }
 

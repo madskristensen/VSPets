@@ -422,9 +422,9 @@ namespace VSPets.Services
             }
 
             // Check distance between each pair of pets
-            for (int i = 0; i < pets.Count; i++)
+            for (var i = 0; i < pets.Count; i++)
             {
-                for (int j = i + 1; j < pets.Count; j++)
+                for (var j = i + 1; j < pets.Count; j++)
                 {
                     IPet pet1 = pets[i];
                     IPet pet2 = pets[j];

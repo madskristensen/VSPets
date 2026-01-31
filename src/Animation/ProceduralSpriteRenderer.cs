@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
@@ -220,145 +219,179 @@ namespace VSPets.Animation
             Brush accentBrush = CreateBrush(accentColor);
             Brush eyeBrush = CreateBrush(eyeColor);
             Brush pinkBrush = CreateBrush(Color.FromRgb(255, 180, 180));
+            Brush blushBrush = CreateBrush(Color.FromArgb(80, 255, 150, 150));
+            Brush whiteBrush = CreateBrush(Colors.White);
 
             // Get leg positions based on state and frame
-            (double frontLegOffset, double backLegOffset, double bodyBob) = GetLegPositions(state, frame);
+            (var frontLegOffset, var backLegOffset, var bodyBob) = GetLegPositions(state, frame);
 
-            // Body (oval) with slight bob
-            var bodyY = 14 * scale + bodyBob * scale;
+            // Chubby body (rounder, more oval)
+            var bodyY = 16 * scale + bodyBob * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
                 new Point(16 * scale, bodyY),
-                9 * scale, 6 * scale);
+                10 * scale, 7 * scale);
 
-            // Belly accent
+            // Cute belly (lighter, rounder)
             dc.DrawEllipse(accentBrush, null,
-                new Point(16 * scale, (bodyY + 2 * scale)),
-                5 * scale, 3 * scale);
+                new Point(16 * scale, (bodyY + 1 * scale)),
+                6 * scale, 4 * scale);
 
-            // Front legs (animated)
-            var frontLeg1Y = 20 * scale + frontLegOffset * scale;
-            var frontLeg2Y = 20 * scale - frontLegOffset * scale;
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(10 * scale, frontLeg1Y, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(14 * scale, frontLeg2Y, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
+            // Stubby front legs
+            var frontLeg1Y = 21 * scale + frontLegOffset * scale;
+            var frontLeg2Y = 21 * scale - frontLegOffset * scale;
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(10 * scale, frontLeg1Y + 3 * scale), 2.5 * scale, 4 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(14 * scale, frontLeg2Y + 3 * scale), 2.5 * scale, 4 * scale);
 
-            // Back legs (animated, opposite phase)
-            var backLeg1Y = 20 * scale - backLegOffset * scale;
-            var backLeg2Y = 20 * scale + backLegOffset * scale;
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(19 * scale, backLeg1Y, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(23 * scale, backLeg2Y, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
+            // Stubby back legs
+            var backLeg1Y = 21 * scale - backLegOffset * scale;
+            var backLeg2Y = 21 * scale + backLegOffset * scale;
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(20 * scale, backLeg1Y + 3 * scale), 2.5 * scale, 4 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(24 * scale, backLeg2Y + 3 * scale), 2.5 * scale, 4 * scale);
 
-            // Head
-            var headY = 10 * scale + bodyBob * 0.5 * scale;
+            // Cute paws (little ovals)
+            dc.DrawEllipse(accentBrush, null, new Point(10 * scale, frontLeg1Y + 6 * scale), 2 * scale, 1.2 * scale);
+            dc.DrawEllipse(accentBrush, null, new Point(14 * scale, frontLeg2Y + 6 * scale), 2 * scale, 1.2 * scale);
+            dc.DrawEllipse(accentBrush, null, new Point(20 * scale, backLeg1Y + 6 * scale), 2 * scale, 1.2 * scale);
+            dc.DrawEllipse(accentBrush, null, new Point(24 * scale, backLeg2Y + 6 * scale), 2 * scale, 1.2 * scale);
+
+            // Big round head (kawaii proportions)
+            var headY = 9 * scale + bodyBob * 0.5 * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
                 new Point(8 * scale, headY),
-                7 * scale, 6 * scale);
+                8 * scale, 7 * scale);
 
-            // Ears (triangular)
+            // Cute triangular ears
             DrawTriangle(dc, baseBrush,
-                new Point(3 * scale, (headY - 4 * scale)),
-                new Point(1 * scale, (headY - 10 * scale)),
-                new Point(6 * scale, (headY - 6 * scale)));
+                new Point(2 * scale, (headY - 2 * scale)),
+                new Point(0 * scale, (headY - 9 * scale)),
+                new Point(6 * scale, (headY - 4 * scale)));
             DrawTriangle(dc, baseBrush,
                 new Point(10 * scale, (headY - 4 * scale)),
-                new Point(15 * scale, (headY - 10 * scale)),
-                new Point(13 * scale, (headY - 6 * scale)));
+                new Point(16 * scale, (headY - 9 * scale)),
+                new Point(14 * scale, (headY - 2 * scale)));
 
             // Inner ears (pink)
             DrawTriangle(dc, pinkBrush,
-                new Point(3.5 * scale, (headY - 5 * scale)),
-                new Point(2.5 * scale, (headY - 8 * scale)),
-                new Point(5 * scale, (headY - 6 * scale)));
+                new Point(2.5 * scale, (headY - 3 * scale)),
+                new Point(1.5 * scale, (headY - 7 * scale)),
+                new Point(5 * scale, (headY - 4.5 * scale)));
             DrawTriangle(dc, pinkBrush,
-                new Point(10.5 * scale, (headY - 5 * scale)),
-                new Point(13.5 * scale, (headY - 8 * scale)),
-                new Point(12 * scale, (headY - 6 * scale)));
+                new Point(11 * scale, (headY - 4.5 * scale)),
+                new Point(14.5 * scale, (headY - 7 * scale)),
+                new Point(13.5 * scale, (headY - 3 * scale)));
 
-            // Eyes
-            DrawCatEyes(dc, eyeBrush, scale, headY, state, frame);
+            // Big cute eyes
+            DrawCuteEyes(dc, scale, headY, state, eyeBrush);
 
-            // Nose (small pink triangle)
-            DrawTriangle(dc, pinkBrush,
-                new Point(7 * scale, (headY + 1 * scale)),
-                new Point(8 * scale, (headY - 1 * scale)),
-                new Point(9 * scale, (headY + 1 * scale)));
+            // Rosy cheeks (blush)
+            dc.DrawEllipse(blushBrush, null, new Point(3 * scale, (headY + 2 * scale)), 2 * scale, 1.2 * scale);
+            dc.DrawEllipse(blushBrush, null, new Point(13 * scale, (headY + 2 * scale)), 2 * scale, 1.2 * scale);
 
-            // Whiskers
-            var whiskerPen = new Pen(eyeBrush, 0.5 * scale);
+            // Tiny pink nose
+            dc.DrawEllipse(pinkBrush, null,
+                new Point(8 * scale, (headY + 1.5 * scale)),
+                1.2 * scale, 0.8 * scale);
+
+            // Little mouth (w shape when happy)
+            var mouthPen = new Pen(eyeBrush, 0.6 * scale);
+            mouthPen.Freeze();
+            if (state == PetState.Happy)
+            {
+                // Happy "w" mouth
+                dc.DrawLine(mouthPen, new Point(6 * scale, (headY + 3 * scale)), new Point(7.5 * scale, (headY + 4 * scale)));
+                dc.DrawLine(mouthPen, new Point(7.5 * scale, (headY + 4 * scale)), new Point(8 * scale, (headY + 3 * scale)));
+                dc.DrawLine(mouthPen, new Point(8 * scale, (headY + 3 * scale)), new Point(8.5 * scale, (headY + 4 * scale)));
+                dc.DrawLine(mouthPen, new Point(8.5 * scale, (headY + 4 * scale)), new Point(10 * scale, (headY + 3 * scale)));
+            }
+            else if (state != PetState.Sleeping)
+            {
+                // Simple curved mouth
+                dc.DrawLine(mouthPen, new Point(7 * scale, (headY + 3 * scale)), new Point(9 * scale, (headY + 3 * scale)));
+            }
+
+            // Whiskers (shorter, cuter)
+            var whiskerPen = new Pen(CreateBrush(Color.FromRgb(100, 100, 100)), 0.4 * scale);
             whiskerPen.Freeze();
-            dc.DrawLine(whiskerPen, new Point(2 * scale, headY), new Point(6 * scale, headY));
-            dc.DrawLine(whiskerPen, new Point(2 * scale, (headY + 2 * scale)), new Point(6 * scale, (headY + 1 * scale)));
-            dc.DrawLine(whiskerPen, new Point(10 * scale, headY), new Point(14 * scale, headY));
-            dc.DrawLine(whiskerPen, new Point(10 * scale, (headY + 1 * scale)), new Point(14 * scale, (headY + 2 * scale)));
+            dc.DrawLine(whiskerPen, new Point(2 * scale, (headY + 1 * scale)), new Point(5 * scale, (headY + 1.5 * scale)));
+            dc.DrawLine(whiskerPen, new Point(2.5 * scale, (headY + 2.5 * scale)), new Point(5.5 * scale, (headY + 2.5 * scale)));
+            dc.DrawLine(whiskerPen, new Point(11 * scale, (headY + 1.5 * scale)), new Point(14 * scale, (headY + 1 * scale)));
+            dc.DrawLine(whiskerPen, new Point(10.5 * scale, (headY + 2.5 * scale)), new Point(13.5 * scale, (headY + 2.5 * scale)));
 
-            // Tail (curved, animated)
+            // Fluffy tail
             DrawCatTail(dc, baseBrush, scale, bodyY, state, frame);
         }
 
-        private void DrawCatEyes(DrawingContext dc, Brush eyeBrush, double scale, double headY, PetState state, int frame)
+        private void DrawCuteEyes(DrawingContext dc, double scale, double headY, PetState state, Brush eyeBrush)
         {
             Brush whiteBrush = CreateBrush(Colors.White);
-            Brush pupilBrush = eyeBrush;
+            Brush highlightBrush = CreateBrush(Colors.White);
 
             if (state == PetState.Sleeping)
             {
-                // Closed eyes (lines)
+                // Peaceful closed eyes (curved lines)
                 var eyePen = new Pen(eyeBrush, 1 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point(4 * scale, headY), new Point(7 * scale, headY));
-                dc.DrawLine(eyePen, new Point(9 * scale, headY), new Point(12 * scale, headY));
+                // Draw curved lines for closed eyes
+                dc.DrawArc(eyePen, new Point(5 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
+                dc.DrawArc(eyePen, new Point(11 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
             }
             else if (state == PetState.Happy)
             {
-                // Happy eyes (^ ^)
-                var eyePen = new Pen(eyeBrush, 1 * scale);
+                // Super happy sparkly eyes (^ ^)
+                var eyePen = new Pen(eyeBrush, 1.2 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point(4 * scale, (headY - 1 * scale)), new Point(5.5 * scale, (headY - 2.5 * scale)));
-                dc.DrawLine(eyePen, new Point(5.5 * scale, (headY - 2.5 * scale)), new Point(7 * scale, (headY - 1 * scale)));
-                dc.DrawLine(eyePen, new Point(9 * scale, (headY - 1 * scale)), new Point(10.5 * scale, (headY - 2.5 * scale)));
-                dc.DrawLine(eyePen, new Point(10.5 * scale, (headY - 2.5 * scale)), new Point(12 * scale, (headY - 1 * scale)));
+                dc.DrawLine(eyePen, new Point(3.5 * scale, (headY + 0.5 * scale)), new Point(5 * scale, (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point(5 * scale, (headY - 2 * scale)), new Point(6.5 * scale, (headY + 0.5 * scale)));
+                dc.DrawLine(eyePen, new Point(9.5 * scale, (headY + 0.5 * scale)), new Point(11 * scale, (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point(11 * scale, (headY - 2 * scale)), new Point(12.5 * scale, (headY + 0.5 * scale)));
             }
             else
             {
-                // Normal cat eyes (vertical pupils)
-                dc.DrawEllipse(whiteBrush, null, new Point(5 * scale, (headY - 1 * scale)), 2 * scale, 2.5 * scale);
-                dc.DrawEllipse(whiteBrush, null, new Point(11 * scale, (headY - 1 * scale)), 2 * scale, 2.5 * scale);
-                dc.DrawEllipse(pupilBrush, null, new Point(5 * scale, (headY - 1 * scale)), 0.8 * scale, 2 * scale);
-                dc.DrawEllipse(pupilBrush, null, new Point(11 * scale, (headY - 1 * scale)), 0.8 * scale, 2 * scale);
+                // Big round sparkly eyes
+                // Eye whites
+                dc.DrawEllipse(whiteBrush, null, new Point(5 * scale, (headY - 0.5 * scale)), 2.8 * scale, 2.8 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(11 * scale, (headY - 0.5 * scale)), 2.8 * scale, 2.8 * scale);
+
+                // Pupils (big and cute)
+                dc.DrawEllipse(eyeBrush, null, new Point(5.3 * scale, (headY - 0.3 * scale)), 2 * scale, 2.2 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(10.7 * scale, (headY - 0.3 * scale)), 2 * scale, 2.2 * scale);
+
+                // Sparkle highlights (makes them look alive and cute)
+                dc.DrawEllipse(highlightBrush, null, new Point(4.3 * scale, (headY - 1.3 * scale)), 0.8 * scale, 0.8 * scale);
+                dc.DrawEllipse(highlightBrush, null, new Point(9.7 * scale, (headY - 1.3 * scale)), 0.8 * scale, 0.8 * scale);
+                // Smaller secondary highlight
+                dc.DrawEllipse(highlightBrush, null, new Point(5.8 * scale, (headY + 0.5 * scale)), 0.4 * scale, 0.4 * scale);
+                dc.DrawEllipse(highlightBrush, null, new Point(11.2 * scale, (headY + 0.5 * scale)), 0.4 * scale, 0.4 * scale);
             }
         }
 
         private void DrawCatTail(DrawingContext dc, Brush brush, double scale, double bodyY, PetState state, int frame)
         {
-            var tailWag = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 3 : 0;
-            Point[] points = new[]
+            var tailWag = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 4 : Math.Sin(frame * Math.PI * 0.3) * 1;
+
+            // Fluffy curved tail
+            var pen = new Pen(brush, 3.5 * scale)
             {
-                new Point(25 * scale, bodyY),
-                new Point(28 * scale, (bodyY - 4 * scale + tailWag * scale)),
-                new Point(30 * scale, (bodyY - 10 * scale + tailWag * scale)),
-                new Point(29 * scale, (bodyY - 14 * scale))
+                StartLineCap = PenLineCap.Round,
+                EndLineCap = PenLineCap.Round
             };
+            pen.Freeze();
 
             var geometry = new StreamGeometry();
             using (StreamGeometryContext ctx = geometry.Open())
             {
-                ctx.BeginFigure(points[0], false, false);
-                ctx.BezierTo(points[1], points[2], points[3], true, true);
+                ctx.BeginFigure(new Point(25 * scale, bodyY - 2 * scale), false, false);
+                ctx.BezierTo(
+                    new Point(28 * scale, (bodyY - 6 * scale + tailWag * scale)),
+                    new Point(30 * scale, (bodyY - 10 * scale + tailWag * scale)),
+                    new Point(28 * scale, (bodyY - 13 * scale + tailWag * scale)),
+                    true, true);
             }
             geometry.Freeze();
-
-            var pen = new Pen(brush, 3 * scale);
-            pen.StartLineCap = PenLineCap.Round;
-            pen.EndLineCap = PenLineCap.Round;
-            pen.Freeze();
-
             dc.DrawGeometry(null, pen, geometry);
         }
 
@@ -372,90 +405,107 @@ namespace VSPets.Animation
             Brush baseBrush = CreateBrush(baseColor);
             Brush accentBrush = CreateBrush(accentColor);
             Brush eyeBrush = CreateBrush(eyeColor);
-            Brush noseBrush = CreateBrush(Colors.Black);
-            Brush tongueBrush = CreateBrush(Color.FromRgb(255, 120, 140));
+            Brush noseBrush = CreateBrush(Color.FromRgb(40, 40, 40));
+            Brush tongueBrush = CreateBrush(Color.FromRgb(255, 130, 150));
+            Brush blushBrush = CreateBrush(Color.FromArgb(80, 255, 150, 150));
+            Brush whiteBrush = CreateBrush(Colors.White);
 
-            (double frontLegOffset, double backLegOffset, double bodyBob) = GetLegPositions(state, frame);
+            (var frontLegOffset, var backLegOffset, var bodyBob) = GetLegPositions(state, frame);
 
-            // Body (rounder than cat)
-            var bodyY = 14 * scale + bodyBob * scale;
+            // Chubby round body
+            var bodyY = 16 * scale + bodyBob * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(16 * scale, bodyY),
+                new Point(17 * scale, bodyY),
                 10 * scale, 7 * scale);
 
-            // Belly
+            // Cute belly patch
             dc.DrawEllipse(accentBrush, null,
-                new Point(16 * scale, (bodyY + 2 * scale)),
+                new Point(17 * scale, (bodyY + 1.5 * scale)),
                 6 * scale, 4 * scale);
 
-            // Legs with paws
-            DrawDogLegs(dc, baseBrush, accentBrush, scale, frontLegOffset, backLegOffset, outlinePen);
+            // Stubby legs
+            DrawCuteDogLegs(dc, baseBrush, accentBrush, scale, frontLegOffset, backLegOffset, outlinePen);
 
-            // Head (rounder)
-            var headY = 11 * scale + bodyBob * 0.5 * scale;
+            // Big round head
+            var headY = 10 * scale + bodyBob * 0.5 * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(7 * scale, headY),
-                7 * scale, 6 * scale);
+                new Point(8 * scale, headY),
+                8 * scale, 7 * scale);
 
-            // Snout
+            // Cute snout (rounder)
             dc.DrawEllipse(accentBrush, outlinePen,
-                new Point(3 * scale, (headY + 2 * scale)),
+                new Point(4 * scale, (headY + 2 * scale)),
                 4 * scale, 3 * scale);
 
-            // Floppy ears
+            // Floppy ears (rounder, cuter)
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(2 * scale, (headY + 1 * scale)),
-                3 * scale, 5 * scale);
+                new Point(1 * scale, (headY + 2 * scale)),
+                3 * scale, 6 * scale);
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(12 * scale, (headY + 1 * scale)),
-                3 * scale, 5 * scale);
+                new Point(14 * scale, (headY + 2 * scale)),
+                3 * scale, 6 * scale);
 
-            // Eyes
-            DrawDogEyes(dc, eyeBrush, scale, headY, state);
+            // Big cute eyes
+            DrawCuteDogEyes(dc, scale, headY, state, eyeBrush);
 
-            // Nose
+            // Rosy cheeks
+            dc.DrawEllipse(blushBrush, null, new Point(3 * scale, (headY + 3 * scale)), 2 * scale, 1.2 * scale);
+            dc.DrawEllipse(blushBrush, null, new Point(13 * scale, (headY + 3 * scale)), 2 * scale, 1.2 * scale);
+
+            // Cute round nose
             dc.DrawEllipse(noseBrush, null,
-                new Point(1 * scale, (headY + 1 * scale)),
-                2 * scale, 1.5 * scale);
+                new Point(2 * scale, (headY + 1.5 * scale)),
+                1.8 * scale, 1.3 * scale);
+            // Nose shine
+            dc.DrawEllipse(whiteBrush, null,
+                new Point(1.5 * scale, (headY + 1 * scale)),
+                0.5 * scale, 0.4 * scale);
 
-            // Tongue (when happy or running)
+            // Happy mouth/tongue
+            var mouthPen = new Pen(eyeBrush, 0.6 * scale);
+            mouthPen.Freeze();
             if (state == PetState.Happy || state == PetState.Running)
             {
+                // Open mouth with tongue
                 dc.DrawEllipse(tongueBrush, null,
-                    new Point(2 * scale, (headY + 5 * scale)),
-                    2 * scale, 3 * scale);
+                    new Point(3 * scale, (headY + 5 * scale)),
+                    2.5 * scale, 3 * scale);
+                // Cute "w" smile
+                dc.DrawLine(mouthPen, new Point(1.5 * scale, (headY + 3.5 * scale)), new Point(3 * scale, (headY + 4.5 * scale)));
+                dc.DrawLine(mouthPen, new Point(3 * scale, (headY + 4.5 * scale)), new Point(4.5 * scale, (headY + 3.5 * scale)));
+            }
+            else if (state != PetState.Sleeping)
+            {
+                // Simple smile
+                dc.DrawArc(mouthPen, new Point(3 * scale, (headY + 3.5 * scale)), 1.5 * scale, 200, 140);
             }
 
-            // Tail (wagging)
-            DrawDogTail(dc, baseBrush, scale, bodyY, state, frame);
+            // Wagging tail
+            DrawCuteDogTail(dc, baseBrush, scale, bodyY, state, frame);
         }
 
-        private void DrawDogLegs(DrawingContext dc, Brush baseBrush, Brush accentBrush, double scale, double frontOffset, double backOffset, Pen outlinePen = null)
+        private void DrawCuteDogLegs(DrawingContext dc, Brush baseBrush, Brush accentBrush, double scale, double frontOffset, double backOffset, Pen outlinePen = null)
         {
-            // Front legs
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(8 * scale, (20 + frontOffset) * scale, 4 * scale, 9 * scale),
-                2 * scale, 2 * scale);
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(13 * scale, (20 - frontOffset) * scale, 4 * scale, 9 * scale),
-                2 * scale, 2 * scale);
+            // Stubby front legs
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(10 * scale, (22 + frontOffset) * scale), 2.5 * scale, 4 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(14 * scale, (22 - frontOffset) * scale), 2.5 * scale, 4 * scale);
 
-            // Back legs
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(19 * scale, (20 - backOffset) * scale, 4 * scale, 9 * scale),
-                2 * scale, 2 * scale);
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(24 * scale, (20 + backOffset) * scale, 4 * scale, 9 * scale),
-                2 * scale, 2 * scale);
+            // Stubby back legs
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(21 * scale, (22 - backOffset) * scale), 2.5 * scale, 4 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(25 * scale, (22 + backOffset) * scale), 2.5 * scale, 4 * scale);
 
-            // Paws (lighter color)
-            dc.DrawEllipse(accentBrush, outlinePen, new Point(10 * scale, (29 + frontOffset) * scale), 2.5 * scale, 1.5 * scale);
-            dc.DrawEllipse(accentBrush, outlinePen, new Point(15 * scale, (29 - frontOffset) * scale), 2.5 * scale, 1.5 * scale);
-            dc.DrawEllipse(accentBrush, outlinePen, new Point(21 * scale, (29 - backOffset) * scale), 2.5 * scale, 1.5 * scale);
-            dc.DrawEllipse(accentBrush, outlinePen, new Point(26 * scale, (29 + backOffset) * scale), 2.5 * scale, 1.5 * scale);
+            // Cute round paws
+            dc.DrawEllipse(accentBrush, null, new Point(10 * scale, (26 + frontOffset) * scale), 2.2 * scale, 1.3 * scale);
+            dc.DrawEllipse(accentBrush, null, new Point(14 * scale, (26 - frontOffset) * scale), 2.2 * scale, 1.3 * scale);
+            dc.DrawEllipse(accentBrush, null, new Point(21 * scale, (26 - backOffset) * scale), 2.2 * scale, 1.3 * scale);
+            dc.DrawEllipse(accentBrush, null, new Point(25 * scale, (26 + backOffset) * scale), 2.2 * scale, 1.3 * scale);
         }
 
-        private void DrawDogEyes(DrawingContext dc, Brush eyeBrush, double scale, double headY, PetState state)
+        private void DrawCuteDogEyes(DrawingContext dc, double scale, double headY, PetState state, Brush eyeBrush)
         {
             Brush whiteBrush = CreateBrush(Colors.White);
 
@@ -463,41 +513,60 @@ namespace VSPets.Animation
             {
                 var eyePen = new Pen(eyeBrush, 1 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point(4 * scale, (headY - 1 * scale)), new Point(7 * scale, (headY - 1 * scale)));
-                dc.DrawLine(eyePen, new Point(9 * scale, (headY - 1 * scale)), new Point(12 * scale, (headY - 1 * scale)));
+                dc.DrawArc(eyePen, new Point(5 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
+                dc.DrawArc(eyePen, new Point(11 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
             }
             else if (state == PetState.Happy)
             {
-                // Happy squinty eyes
-                var eyePen = new Pen(eyeBrush, 1.5 * scale);
+                // Super happy sparkly eyes
+                var eyePen = new Pen(eyeBrush, 1.2 * scale);
                 eyePen.Freeze();
-                dc.DrawArc(eyePen, new Point(4 * scale, (headY - 1 * scale)), 2 * scale, 0, 180);
-                dc.DrawArc(eyePen, new Point(10 * scale, (headY - 1 * scale)), 2 * scale, 0, 180);
+                dc.DrawLine(eyePen, new Point(3.5 * scale, (headY + 0.5 * scale)), new Point(5 * scale, (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point(5 * scale, (headY - 2 * scale)), new Point(6.5 * scale, (headY + 0.5 * scale)));
+                dc.DrawLine(eyePen, new Point(9.5 * scale, (headY + 0.5 * scale)), new Point(11 * scale, (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point(11 * scale, (headY - 2 * scale)), new Point(12.5 * scale, (headY + 0.5 * scale)));
             }
             else
             {
-                // Normal round dog eyes
-                dc.DrawEllipse(whiteBrush, null, new Point(5 * scale, (headY - 1 * scale)), 2.5 * scale, 2.5 * scale);
-                dc.DrawEllipse(whiteBrush, null, new Point(11 * scale, (headY - 1 * scale)), 2.5 * scale, 2.5 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(5 * scale, (headY - 1 * scale)), 1.5 * scale, 1.5 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(11 * scale, (headY - 1 * scale)), 1.5 * scale, 1.5 * scale);
+                // Big round puppy eyes
+                dc.DrawEllipse(whiteBrush, null, new Point(5 * scale, (headY - 0.5 * scale)), 3 * scale, 3 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(11 * scale, (headY - 0.5 * scale)), 3 * scale, 3 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(5.3 * scale, (headY - 0.2 * scale)), 2 * scale, 2.2 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(10.7 * scale, (headY - 0.2 * scale)), 2 * scale, 2.2 * scale);
+                // Sparkle highlights
+                dc.DrawEllipse(whiteBrush, null, new Point(4.3 * scale, (headY - 1.2 * scale)), 0.9 * scale, 0.9 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(9.7 * scale, (headY - 1.2 * scale)), 0.9 * scale, 0.9 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(5.8 * scale, (headY + 0.5 * scale)), 0.4 * scale, 0.4 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(11.2 * scale, (headY + 0.5 * scale)), 0.4 * scale, 0.4 * scale);
             }
         }
 
-        private void DrawDogTail(DrawingContext dc, Brush brush, double scale, double bodyY, PetState state, int frame)
+        private void DrawCuteDogTail(DrawingContext dc, Brush brush, double scale, double bodyY, PetState state, int frame)
         {
-            // Dogs wag tail more when happy
-            var wagSpeed = state == PetState.Happy ? 2 : (state == PetState.Walking ? 0.5 : 0);
-            var wagAmount = Math.Sin(frame * Math.PI * wagSpeed) * 4;
+            // Dogs wag tail enthusiastically
+            var wagSpeed = state == PetState.Happy ? 2.5 : (state == PetState.Walking || state == PetState.Running ? 1.5 : 0.3);
+            var wagAmount = Math.Sin(frame * Math.PI * wagSpeed) * 5;
 
-            var pen = new Pen(brush, 4 * scale);
-            pen.StartLineCap = PenLineCap.Round;
-            pen.EndLineCap = PenLineCap.Round;
+            var pen = new Pen(brush, 4 * scale)
+            {
+                StartLineCap = PenLineCap.Round,
+                EndLineCap = PenLineCap.Round
+            };
             pen.Freeze();
 
-            dc.DrawLine(pen,
-                new Point(26 * scale, (bodyY - 2 * scale)),
-                new Point((30 + wagAmount) * scale, (bodyY - 8 * scale)));
+            // Curved wagging tail
+            var geometry = new StreamGeometry();
+            using (StreamGeometryContext ctx = geometry.Open())
+            {
+                ctx.BeginFigure(new Point(26 * scale, (bodyY - 3 * scale)), false, false);
+                ctx.BezierTo(
+                    new Point(28 * scale, (bodyY - 6 * scale + wagAmount * scale * 0.5)),
+                    new Point(30 * scale, (bodyY - 9 * scale + wagAmount * scale)),
+                    new Point(29 * scale, (bodyY - 12 * scale + wagAmount * scale)),
+                    true, true);
+            }
+            geometry.Freeze();
+            dc.DrawGeometry(null, pen, geometry);
         }
 
         #endregion
@@ -511,160 +580,178 @@ namespace VSPets.Animation
             Brush accentBrush = CreateBrush(accentColor);
             Brush whiteBrush = CreateBrush(Colors.White);
             Brush eyeBrush = CreateBrush(eyeColor);
-            Brush noseBrush = CreateBrush(Colors.Black);
+            Brush noseBrush = CreateBrush(Color.FromRgb(40, 40, 40));
+            Brush blushBrush = CreateBrush(Color.FromArgb(80, 255, 150, 150));
 
-            (double frontLegOffset, double backLegOffset, double bodyBob) = GetLegPositions(state, frame);
+            (var frontLegOffset, var backLegOffset, var bodyBob) = GetLegPositions(state, frame);
 
-            // Body (sleek, longer than cat)
-            var bodyY = 14 * scale + bodyBob * scale;
+            // Chubby fluffy body
+            var bodyY = 16 * scale + bodyBob * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(16 * scale, bodyY),
-                11 * scale, 6 * scale);
+                new Point(17 * scale, bodyY),
+                10 * scale, 7 * scale);
 
-            // White belly
+            // White belly/chest patch
             dc.DrawEllipse(whiteBrush, null,
-                new Point(14 * scale, (bodyY + 2 * scale)),
-                6 * scale, 3 * scale);
+                new Point(15 * scale, (bodyY + 1 * scale)),
+                6 * scale, 4 * scale);
 
-            // Legs (slender, black tips)
-            DrawFoxLegs(dc, baseBrush, scale, frontLegOffset, backLegOffset, outlinePen);
+            // Stubby legs with dark socks
+            DrawCuteFoxLegs(dc, baseBrush, scale, frontLegOffset, backLegOffset, outlinePen);
 
-            // Head (pointed snout)
+            // Big round head
             var headY = 10 * scale + bodyBob * 0.5 * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(6 * scale, headY),
-                6 * scale, 5 * scale);
+                new Point(7 * scale, headY),
+                7 * scale, 6 * scale);
 
-            // White face markings
+            // White face markings (larger, cuter)
             dc.DrawEllipse(whiteBrush, null,
-                new Point(5 * scale, (headY + 1 * scale)),
-                3 * scale, 3 * scale);
+                new Point(6 * scale, (headY + 1.5 * scale)),
+                4 * scale, 3.5 * scale);
 
-            // Pointed snout
+            // Cute pointed snout (smaller)
+            dc.DrawEllipse(whiteBrush, null,
+                new Point(2 * scale, (headY + 2 * scale)),
+                3 * scale, 2 * scale);
+
+            // Big fluffy ears
             DrawTriangle(dc, baseBrush,
-                new Point(0 * scale, (headY + 2 * scale)),
-                new Point(3 * scale, (headY - 1 * scale)),
-                new Point(3 * scale, (headY + 3 * scale)));
-
-            // Large pointed ears
+                new Point(2 * scale, (headY - 2 * scale)),
+                new Point(-1 * scale, (headY - 10 * scale)),
+                new Point(6 * scale, (headY - 4 * scale)));
             DrawTriangle(dc, baseBrush,
-                new Point(2 * scale, (headY - 3 * scale)),
-                new Point(0 * scale, (headY - 11 * scale)),
-                new Point(6 * scale, (headY - 5 * scale)));
-            DrawTriangle(dc, baseBrush,
-                new Point(8 * scale, (headY - 3 * scale)),
-                new Point(12 * scale, (headY - 11 * scale)),
-                new Point(11 * scale, (headY - 5 * scale)));
+                new Point(9 * scale, (headY - 4 * scale)),
+                new Point(15 * scale, (headY - 10 * scale)),
+                new Point(12 * scale, (headY - 2 * scale)));
 
-            // Inner ears (dark)
-            Brush darkBrush = CreateBrush(Color.FromRgb(60, 30, 10));
-            DrawTriangle(dc, darkBrush,
-                new Point(2.5 * scale, (headY - 4 * scale)),
-                new Point(1.5 * scale, (headY - 8 * scale)),
-                new Point(5 * scale, (headY - 5.5 * scale)));
-            DrawTriangle(dc, darkBrush,
-                new Point(8.5 * scale, (headY - 4 * scale)),
-                new Point(11 * scale, (headY - 8 * scale)),
-                new Point(10 * scale, (headY - 5.5 * scale)));
+            // Inner ears (dark/pink)
+            Brush innerEarBrush = CreateBrush(Color.FromRgb(80, 40, 20));
+            DrawTriangle(dc, innerEarBrush,
+                new Point(2.5 * scale, (headY - 3 * scale)),
+                new Point(0.5 * scale, (headY - 7.5 * scale)),
+                new Point(5 * scale, (headY - 4.5 * scale)));
+            DrawTriangle(dc, innerEarBrush,
+                new Point(9.5 * scale, (headY - 4.5 * scale)),
+                new Point(13.5 * scale, (headY - 7.5 * scale)),
+                new Point(11.5 * scale, (headY - 3 * scale)));
 
-            // Eyes (almond shaped)
-            DrawFoxEyes(dc, eyeBrush, scale, headY, state);
+            // Big cute eyes
+            DrawCuteFoxEyes(dc, scale, headY, state, eyeBrush);
 
-            // Nose
+            // Rosy cheeks
+            dc.DrawEllipse(blushBrush, null, new Point(3 * scale, (headY + 3 * scale)), 1.8 * scale, 1.2 * scale);
+            dc.DrawEllipse(blushBrush, null, new Point(11 * scale, (headY + 3 * scale)), 1.8 * scale, 1.2 * scale);
+
+            // Cute button nose
             dc.DrawEllipse(noseBrush, null,
-                new Point(0.5 * scale, (headY + 1.5 * scale)),
-                1.5 * scale, 1 * scale);
+                new Point(1 * scale, (headY + 1.5 * scale)),
+                1.3 * scale, 1 * scale);
+            // Nose shine
+            dc.DrawEllipse(whiteBrush, null,
+                new Point(0.5 * scale, (headY + 1 * scale)),
+                0.4 * scale, 0.3 * scale);
 
-            // Fluffy tail with white tip
-            DrawFoxTail(dc, baseBrush, whiteBrush, scale, bodyY, state, frame);
+            // Little smile
+            var mouthPen = new Pen(eyeBrush, 0.5 * scale);
+            mouthPen.Freeze();
+            if (state == PetState.Happy)
+            {
+                dc.DrawLine(mouthPen, new Point(0 * scale, (headY + 3 * scale)), new Point(1.5 * scale, (headY + 4 * scale)));
+                dc.DrawLine(mouthPen, new Point(1.5 * scale, (headY + 4 * scale)), new Point(3 * scale, (headY + 3 * scale)));
+            }
+
+            // Super fluffy tail with white tip
+            DrawCuteFoxTail(dc, baseBrush, whiteBrush, scale, bodyY, state, frame);
         }
 
-        private void DrawFoxLegs(DrawingContext dc, Brush baseBrush, double scale, double frontOffset, double backOffset, Pen outlinePen = null)
+        private void DrawCuteFoxLegs(DrawingContext dc, Brush baseBrush, double scale, double frontOffset, double backOffset, Pen outlinePen = null)
         {
-            Brush blackBrush = CreateBrush(Color.FromRgb(30, 30, 30));
+            Brush sockBrush = CreateBrush(Color.FromRgb(50, 40, 35));
 
-            // Front legs
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(8 * scale, (20 + frontOffset) * scale, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(12 * scale, (20 - frontOffset) * scale, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
+            // Stubby front legs
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(10 * scale, (22 + frontOffset) * scale), 2.3 * scale, 4 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(14 * scale, (22 - frontOffset) * scale), 2.3 * scale, 4 * scale);
 
-            // Back legs
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(20 * scale, (20 - backOffset) * scale, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
-            dc.DrawRoundedRectangle(baseBrush, outlinePen,
-                new Rect(24 * scale, (20 + backOffset) * scale, 3 * scale, 8 * scale),
-                1 * scale, 1 * scale);
+            // Stubby back legs
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(21 * scale, (22 - backOffset) * scale), 2.3 * scale, 4 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(25 * scale, (22 + backOffset) * scale), 2.3 * scale, 4 * scale);
 
-            // Black feet
-            dc.DrawEllipse(blackBrush, null, new Point(9.5 * scale, (28 + frontOffset) * scale), 2 * scale, 1.5 * scale);
-            dc.DrawEllipse(blackBrush, null, new Point(13.5 * scale, (28 - frontOffset) * scale), 2 * scale, 1.5 * scale);
-            dc.DrawEllipse(blackBrush, null, new Point(21.5 * scale, (28 - backOffset) * scale), 2 * scale, 1.5 * scale);
-            dc.DrawEllipse(blackBrush, null, new Point(25.5 * scale, (28 + backOffset) * scale), 2 * scale, 1.5 * scale);
+            // Dark "socks" (paws)
+            dc.DrawEllipse(sockBrush, null, new Point(10 * scale, (26 + frontOffset) * scale), 2 * scale, 1.3 * scale);
+            dc.DrawEllipse(sockBrush, null, new Point(14 * scale, (26 - frontOffset) * scale), 2 * scale, 1.3 * scale);
+            dc.DrawEllipse(sockBrush, null, new Point(21 * scale, (26 - backOffset) * scale), 2 * scale, 1.3 * scale);
+            dc.DrawEllipse(sockBrush, null, new Point(25 * scale, (26 + backOffset) * scale), 2 * scale, 1.3 * scale);
         }
 
-        private void DrawFoxEyes(DrawingContext dc, Brush eyeBrush, double scale, double headY, PetState state)
+        private void DrawCuteFoxEyes(DrawingContext dc, double scale, double headY, PetState state, Brush eyeBrush)
         {
             Brush whiteBrush = CreateBrush(Colors.White);
-            Brush amberBrush = CreateBrush(Color.FromRgb(255, 180, 0));
+            Brush amberBrush = CreateBrush(Color.FromRgb(255, 190, 50));
 
             if (state == PetState.Sleeping)
             {
                 var eyePen = new Pen(eyeBrush, 1 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point(3 * scale, (headY - 1 * scale)), new Point(6 * scale, (headY - 1 * scale)));
-                dc.DrawLine(eyePen, new Point(7 * scale, (headY - 1 * scale)), new Point(10 * scale, (headY - 1 * scale)));
+                dc.DrawArc(eyePen, new Point(4.5 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
+                dc.DrawArc(eyePen, new Point(9.5 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
             }
             else if (state == PetState.Happy)
             {
-                // Sly/happy fox eyes
-                var eyePen = new Pen(eyeBrush, 1 * scale);
+                // Sly happy fox eyes (^ ^)
+                var eyePen = new Pen(eyeBrush, 1.2 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point(3 * scale, headY), new Point(4.5 * scale, (headY - 2 * scale)));
-                dc.DrawLine(eyePen, new Point(4.5 * scale, (headY - 2 * scale)), new Point(6 * scale, headY));
-                dc.DrawLine(eyePen, new Point(7 * scale, headY), new Point(8.5 * scale, (headY - 2 * scale)));
-                dc.DrawLine(eyePen, new Point(8.5 * scale, (headY - 2 * scale)), new Point(10 * scale, headY));
+                dc.DrawLine(eyePen, new Point(3 * scale, (headY + 0.5 * scale)), new Point(4.5 * scale, (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point(4.5 * scale, (headY - 2 * scale)), new Point(6 * scale, (headY + 0.5 * scale)));
+                dc.DrawLine(eyePen, new Point(8 * scale, (headY + 0.5 * scale)), new Point(9.5 * scale, (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point(9.5 * scale, (headY - 2 * scale)), new Point(11 * scale, (headY + 0.5 * scale)));
             }
             else
             {
-                // Almond eyes with amber color
-                dc.DrawEllipse(amberBrush, null, new Point(4.5 * scale, (headY - 1 * scale)), 2 * scale, 1.5 * scale);
-                dc.DrawEllipse(amberBrush, null, new Point(8.5 * scale, (headY - 1 * scale)), 2 * scale, 1.5 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(4.5 * scale, (headY - 1 * scale)), 1 * scale, 1.2 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(8.5 * scale, (headY - 1 * scale)), 1 * scale, 1.2 * scale);
+                // Big sparkly amber eyes
+                dc.DrawEllipse(amberBrush, null, new Point(4.5 * scale, (headY - 0.5 * scale)), 2.5 * scale, 2.5 * scale);
+                dc.DrawEllipse(amberBrush, null, new Point(9.5 * scale, (headY - 0.5 * scale)), 2.5 * scale, 2.5 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(4.8 * scale, (headY - 0.2 * scale)), 1.5 * scale, 1.8 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(9.2 * scale, (headY - 0.2 * scale)), 1.5 * scale, 1.8 * scale);
+                // Sparkle highlights
+                dc.DrawEllipse(whiteBrush, null, new Point(3.8 * scale, (headY - 1.2 * scale)), 0.8 * scale, 0.8 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(8.2 * scale, (headY - 1.2 * scale)), 0.8 * scale, 0.8 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(5.2 * scale, (headY + 0.5 * scale)), 0.35 * scale, 0.35 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(9.8 * scale, (headY + 0.5 * scale)), 0.35 * scale, 0.35 * scale);
             }
         }
 
-        private void DrawFoxTail(DrawingContext dc, Brush baseBrush, Brush whiteBrush, double scale, double bodyY, PetState state, int frame)
+        private void DrawCuteFoxTail(DrawingContext dc, Brush baseBrush, Brush whiteBrush, double scale, double bodyY, PetState state, int frame)
         {
-            var wagAmount = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 3 : Math.Sin(frame * Math.PI * 0.3) * 1;
+            var wagAmount = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 4 : Math.Sin(frame * Math.PI * 0.4) * 1.5;
 
-            // Fluffy tail body
+            // Extra fluffy tail
             var tailGeometry = new StreamGeometry();
             using (StreamGeometryContext ctx = tailGeometry.Open())
             {
-                ctx.BeginFigure(new Point(26 * scale, bodyY), true, true);
+                ctx.BeginFigure(new Point(26 * scale, (bodyY - 1 * scale)), true, true);
                 ctx.BezierTo(
-                    new Point(28 * scale, (bodyY - 6 * scale + wagAmount * scale)),
-                    new Point(32 * scale, (bodyY - 10 * scale + wagAmount * scale)),
-                    new Point(30 * scale, (bodyY - 14 * scale + wagAmount * scale)),
+                    new Point(29 * scale, (bodyY - 5 * scale + wagAmount * scale)),
+                    new Point(33 * scale, (bodyY - 9 * scale + wagAmount * scale)),
+                    new Point(31 * scale, (bodyY - 14 * scale + wagAmount * scale)),
                     true, true);
                 ctx.BezierTo(
-                    new Point(28 * scale, (bodyY - 12 * scale + wagAmount * scale)),
-                    new Point(25 * scale, (bodyY - 4 * scale)),
-                    new Point(26 * scale, bodyY),
+                    new Point(29 * scale, (bodyY - 12 * scale + wagAmount * scale)),
+                    new Point(25 * scale, (bodyY - 5 * scale)),
+                    new Point(26 * scale, (bodyY - 1 * scale)),
                     true, true);
             }
             tailGeometry.Freeze();
             dc.DrawGeometry(baseBrush, null, tailGeometry);
 
-            // White tail tip
+            // Big white fluffy tail tip
             dc.DrawEllipse(whiteBrush, null,
-                new Point(30 * scale, (bodyY - 13 * scale + wagAmount * scale)),
-                2 * scale, 3 * scale);
+                new Point(31 * scale, (bodyY - 13 * scale + wagAmount * scale)),
+                3 * scale, 4 * scale);
         }
 
         #endregion
@@ -674,121 +761,212 @@ namespace VSPets.Animation
         private void DrawClippy(DrawingContext dc, int size, PetState state, int frame)
         {
             var scale = size / 32.0;
-            Brush silverBrush = CreateBrush(Color.FromRgb(180, 180, 200));
+
+            // Classic paperclip silver/gray color
+            Brush wireBrush = CreateBrush(Color.FromRgb(160, 165, 175));
+            Brush wireHighlight = CreateBrush(Color.FromRgb(200, 205, 215));
             Brush eyeBrush = CreateBrush(Colors.Black);
             Brush eyeWhiteBrush = CreateBrush(Colors.White);
 
-            var bodyBob = state == PetState.Walking || state == PetState.Running ? Math.Sin(frame * Math.PI) * 2 : 0;
+            var bodyBob = state == PetState.Walking || state == PetState.Running ? Math.Sin(frame * Math.PI) * 1.5 : 0;
 
-            // Paperclip body shape (curved wire)
-            var pen = new Pen(silverBrush, 4 * scale);
-            pen.StartLineCap = PenLineCap.Round;
-            pen.EndLineCap = PenLineCap.Round;
-            pen.Freeze();
-
-            var geometry = new StreamGeometry();
-            using (StreamGeometryContext ctx = geometry.Open())
+            // Wire pen for the paperclip body
+            var wirePen = new Pen(wireBrush, 3 * scale)
             {
-                ctx.BeginFigure(new Point(8 * scale, (28 + bodyBob) * scale), false, false);
-                ctx.BezierTo(
-                    new Point(4 * scale, (24 + bodyBob) * scale),
-                    new Point(4 * scale, (8 + bodyBob) * scale),
-                    new Point(16 * scale, (4 + bodyBob) * scale),
-                    true, true);
-                ctx.BezierTo(
-                    new Point(28 * scale, (8 + bodyBob) * scale),
-                    new Point(28 * scale, (20 + bodyBob) * scale),
-                    new Point(20 * scale, (24 + bodyBob) * scale),
-                    true, true);
-                ctx.BezierTo(
-                    new Point(12 * scale, (20 + bodyBob) * scale),
-                    new Point(12 * scale, (12 + bodyBob) * scale),
-                    new Point(16 * scale, (10 + bodyBob) * scale),
-                    true, true);
-            }
-            geometry.Freeze();
-            dc.DrawGeometry(null, pen, geometry);
+                StartLineCap = PenLineCap.Round,
+                EndLineCap = PenLineCap.Round
+            };
+            wirePen.Freeze();
 
-            // Eyes on the loop
+            // Highlight pen
+            var highlightPen = new Pen(wireHighlight, 1.5 * scale)
+            {
+                StartLineCap = PenLineCap.Round,
+                EndLineCap = PenLineCap.Round
+            };
+            highlightPen.Freeze();
+
+            // Draw classic paperclip shape - single bent wire
+            // The shape is like: bottom straight up, curve at top, back down, small curve, back up a bit
+            var clipGeometry = new StreamGeometry();
+            using (StreamGeometryContext ctx = clipGeometry.Open())
+            {
+                // Start at bottom-left leg
+                ctx.BeginFigure(new Point(10 * scale, (28 + bodyBob) * scale), false, false);
+
+                // Go up the left side
+                ctx.LineTo(new Point(10 * scale, (10 + bodyBob) * scale), true, true);
+
+                // Curve around the top (big loop)
+                ctx.BezierTo(
+                    new Point(10 * scale, (4 + bodyBob) * scale),
+                    new Point(22 * scale, (4 + bodyBob) * scale),
+                    new Point(22 * scale, (10 + bodyBob) * scale),
+                    true, true);
+
+                // Go down the right side
+                ctx.LineTo(new Point(22 * scale, (20 + bodyBob) * scale), true, true);
+
+                // Small inner curve
+                ctx.BezierTo(
+                    new Point(22 * scale, (24 + bodyBob) * scale),
+                    new Point(14 * scale, (24 + bodyBob) * scale),
+                    new Point(14 * scale, (20 + bodyBob) * scale),
+                    true, true);
+
+                // Go back up a bit (inner part)
+                ctx.LineTo(new Point(14 * scale, (14 + bodyBob) * scale), true, true);
+            }
+            clipGeometry.Freeze();
+            dc.DrawGeometry(null, wirePen, clipGeometry);
+
+            // Draw highlight on left edge
+            dc.DrawLine(highlightPen,
+                new Point(9 * scale, (26 + bodyBob) * scale),
+                new Point(9 * scale, (12 + bodyBob) * scale));
+
+            // Big googly eyes - the signature Clippy look!
+            // Position eyes on the upper curve area
             var eyeY = (8 + bodyBob) * scale;
-            dc.DrawEllipse(eyeWhiteBrush, null, new Point(13 * scale, eyeY), 3 * scale, 3 * scale);
-            dc.DrawEllipse(eyeWhiteBrush, null, new Point(21 * scale, eyeY), 3 * scale, 3 * scale);
+            var leftEyeX = 13 * scale;
+            var rightEyeX = 19 * scale;
+
+            // Large white eye backgrounds
+            dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX, eyeY), 3.5 * scale, 4 * scale);
+            dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX, eyeY), 3.5 * scale, 4 * scale);
+
+            // Thin outline around eyes
+            var eyeOutlinePen = new Pen(CreateBrush(Color.FromRgb(100, 100, 110)), 0.5 * scale);
+            eyeOutlinePen.Freeze();
+            dc.DrawEllipse(null, eyeOutlinePen, new Point(leftEyeX, eyeY), 3.5 * scale, 4 * scale);
+            dc.DrawEllipse(null, eyeOutlinePen, new Point(rightEyeX, eyeY), 3.5 * scale, 4 * scale);
 
             if (state == PetState.Happy)
             {
-                // Happy eyes
+                // Happy curved eyes
                 var eyePen = new Pen(eyeBrush, 1.5 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point(11 * scale, eyeY), new Point(13 * scale, (eyeY - 2 * scale)));
-                dc.DrawLine(eyePen, new Point(13 * scale, (eyeY - 2 * scale)), new Point(15 * scale, eyeY));
-                dc.DrawLine(eyePen, new Point(19 * scale, eyeY), new Point(21 * scale, (eyeY - 2 * scale)));
-                dc.DrawLine(eyePen, new Point(21 * scale, (eyeY - 2 * scale)), new Point(23 * scale, eyeY));
+                dc.DrawArc(eyePen, new Point(leftEyeX, (eyeY - 0.5 * scale)), 2 * scale, 200, 140);
+                dc.DrawArc(eyePen, new Point(rightEyeX, (eyeY - 0.5 * scale)), 2 * scale, 200, 140);
+            }
+            else if (state == PetState.Sleeping)
+            {
+                // Closed eyes
+                var eyePen = new Pen(eyeBrush, 1 * scale);
+                eyePen.Freeze();
+                dc.DrawLine(eyePen, new Point((leftEyeX - 2 * scale), eyeY), new Point((leftEyeX + 2 * scale), eyeY));
+                dc.DrawLine(eyePen, new Point((rightEyeX - 2 * scale), eyeY), new Point((rightEyeX + 2 * scale), eyeY));
             }
             else
             {
-                dc.DrawEllipse(eyeBrush, null, new Point(13 * scale, eyeY), 1.5 * scale, 1.5 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(21 * scale, eyeY), 1.5 * scale, 1.5 * scale);
+                // Normal big pupils - looking slightly to the side
+                var pupilOffsetX = 0.3 * scale;
+                var pupilOffsetY = 0.5 * scale;
+                dc.DrawEllipse(eyeBrush, null, new Point(leftEyeX + pupilOffsetX, eyeY + pupilOffsetY), 1.8 * scale, 2.2 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(rightEyeX + pupilOffsetX, eyeY + pupilOffsetY), 1.8 * scale, 2.2 * scale);
+
+                // Eye shine/sparkle
+                dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX - 0.5 * scale, eyeY - 1 * scale), 0.8 * scale, 0.8 * scale);
+                dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX - 0.5 * scale, eyeY - 1 * scale), 0.8 * scale, 0.8 * scale);
             }
 
-            // Eyebrows
-            var browPen = new Pen(eyeBrush, 1 * scale);
+            // Eyebrows (raised, friendly)
+            var browPen = new Pen(eyeBrush, 0.8 * scale);
             browPen.Freeze();
-            dc.DrawLine(browPen, new Point(10 * scale, (eyeY - 4 * scale)), new Point(15 * scale, (eyeY - 5 * scale)));
-            dc.DrawLine(browPen, new Point(19 * scale, (eyeY - 5 * scale)), new Point(24 * scale, (eyeY - 4 * scale)));
+            dc.DrawLine(browPen, new Point((leftEyeX - 2.5 * scale), (eyeY - 5 * scale)), new Point((leftEyeX + 2 * scale), (eyeY - 4.5 * scale)));
+            dc.DrawLine(browPen, new Point((rightEyeX - 2 * scale), (eyeY - 4.5 * scale)), new Point((rightEyeX + 2.5 * scale), (eyeY - 5 * scale)));
         }
 
         private void DrawRubberDuck(DrawingContext dc, int size, PetState state, int frame)
         {
             var scale = size / 32.0;
-            Brush yellowBrush = CreateBrush(Color.FromRgb(255, 220, 50));
-            Brush orangeBrush = CreateBrush(Color.FromRgb(255, 140, 0));
+            Brush yellowBrush = CreateBrush(Color.FromRgb(255, 230, 80));
+            Brush lightYellowBrush = CreateBrush(Color.FromRgb(255, 245, 150));
+            Brush orangeBrush = CreateBrush(Color.FromRgb(255, 160, 50));
             Brush eyeBrush = CreateBrush(Colors.Black);
+            Brush whiteBrush = CreateBrush(Colors.White);
+            Brush blushBrush = CreateBrush(Color.FromArgb(80, 255, 150, 150));
 
             var bodyBob = state == PetState.Walking ? Math.Sin(frame * Math.PI) * 1.5 : 0;
             var waddle = state == PetState.Walking ? Math.Sin(frame * Math.PI * 2) * 2 : 0;
 
-            // Body
+            // Chubby body
             dc.DrawEllipse(yellowBrush, null,
                 new Point((16 + waddle) * scale, (18 + bodyBob) * scale),
-                10 * scale, 8 * scale);
+                11 * scale, 9 * scale);
 
-            // Head
+            // Body highlight
+            dc.DrawEllipse(lightYellowBrush, null,
+                new Point((14 + waddle) * scale, (16 + bodyBob) * scale),
+                5 * scale, 4 * scale);
+
+            // Big round head
             dc.DrawEllipse(yellowBrush, null,
-                new Point((10 + waddle) * scale, (10 + bodyBob) * scale),
-                7 * scale, 6 * scale);
+                new Point((10 + waddle) * scale, (9 + bodyBob) * scale),
+                8 * scale, 7 * scale);
 
-            // Beak
+            // Head highlight
+            dc.DrawEllipse(lightYellowBrush, null,
+                new Point((8 + waddle) * scale, (7 + bodyBob) * scale),
+                3 * scale, 2.5 * scale);
+
+            // Cute beak (rounder)
             dc.DrawEllipse(orangeBrush, null,
-                new Point((4 + waddle) * scale, (12 + bodyBob) * scale),
-                4 * scale, 2 * scale);
+                new Point((3 + waddle) * scale, (11 + bodyBob) * scale),
+                4 * scale, 2.5 * scale);
+            // Beak highlight
+            dc.DrawEllipse(CreateBrush(Color.FromRgb(255, 200, 100)), null,
+                new Point((2 + waddle) * scale, (10 + bodyBob) * scale),
+                1.5 * scale, 1 * scale);
 
-            // Eyes
+            // Big cute eyes
             if (state == PetState.Happy)
+            {
+                var eyePen = new Pen(eyeBrush, 1.2 * scale);
+                eyePen.Freeze();
+                dc.DrawLine(eyePen, new Point((7 + waddle) * scale, (8 + bodyBob) * scale),
+                    new Point((9 + waddle) * scale, (5.5 + bodyBob) * scale));
+                dc.DrawLine(eyePen, new Point((9 + waddle) * scale, (5.5 + bodyBob) * scale),
+                    new Point((11 + waddle) * scale, (8 + bodyBob) * scale));
+            }
+            else if (state == PetState.Sleeping)
             {
                 var eyePen = new Pen(eyeBrush, 1 * scale);
                 eyePen.Freeze();
-                dc.DrawLine(eyePen, new Point((7 + waddle) * scale, (8 + bodyBob) * scale),
-                    new Point((9 + waddle) * scale, (6 + bodyBob) * scale));
-                dc.DrawLine(eyePen, new Point((9 + waddle) * scale, (6 + bodyBob) * scale),
-                    new Point((11 + waddle) * scale, (8 + bodyBob) * scale));
+                dc.DrawArc(eyePen, new Point((9 + waddle) * scale, (7 + bodyBob) * scale), 1.5 * scale, 0, 180);
             }
             else
             {
+                // Big sparkly eye
+                dc.DrawEllipse(whiteBrush, null,
+                    new Point((9 + waddle) * scale, (7 + bodyBob) * scale),
+                    2.5 * scale, 2.5 * scale);
                 dc.DrawEllipse(eyeBrush, null,
-                    new Point((9 + waddle) * scale, (8 + bodyBob) * scale),
-                    1.5 * scale, 1.5 * scale);
+                    new Point((9.3 + waddle) * scale, (7.2 + bodyBob) * scale),
+                    1.8 * scale, 1.8 * scale);
+                // Sparkle
+                dc.DrawEllipse(whiteBrush, null,
+                    new Point((8.3 + waddle) * scale, (6.2 + bodyBob) * scale),
+                    0.7 * scale, 0.7 * scale);
             }
 
-            // Wing hint
-            dc.DrawEllipse(yellowBrush, null,
-                new Point((18 + waddle) * scale, (16 + bodyBob) * scale),
-                4 * scale, 5 * scale);
+            // Rosy cheek
+            dc.DrawEllipse(blushBrush, null,
+                new Point((12 + waddle) * scale, (10 + bodyBob) * scale),
+                1.8 * scale, 1.2 * scale);
 
-            // Tail feathers
-            DrawTriangle(dc, yellowBrush,
-                new Point((26 + waddle) * scale, (16 + bodyBob) * scale),
-                new Point((30 + waddle) * scale, (14 + bodyBob) * scale),
-                new Point((30 + waddle) * scale, (20 + bodyBob) * scale));
+            // Cute little wing
+            dc.DrawEllipse(yellowBrush, null,
+                new Point((19 + waddle) * scale, (16 + bodyBob) * scale),
+                4.5 * scale, 5.5 * scale);
+            dc.DrawEllipse(lightYellowBrush, null,
+                new Point((18 + waddle) * scale, (15 + bodyBob) * scale),
+                2 * scale, 2.5 * scale);
+
+            // Cute tail feathers (rounder)
+            dc.DrawEllipse(yellowBrush, null,
+                new Point((27 + waddle) * scale, (17 + bodyBob) * scale),
+                3 * scale, 4 * scale);
         }
 
         private void DrawGenericPet(DrawingContext dc, int size, Color baseColor, PetState state, int frame)
@@ -797,7 +975,7 @@ namespace VSPets.Animation
             Brush baseBrush = CreateBrush(baseColor);
             Brush eyeBrush = CreateBrush(Colors.Black);
 
-            (double _, double _, double bodyBob) = GetLegPositions(state, frame);
+            (var _, var _, var bodyBob) = GetLegPositions(state, frame);
 
             // Simple blob body
             dc.DrawEllipse(baseBrush, null,

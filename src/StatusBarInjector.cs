@@ -45,7 +45,7 @@ namespace VSPets
                 return false;
             }
 
-            if (!(element is Canvas canvas))
+            if (element is not Canvas canvas)
             {
                 return false;
             }
@@ -62,8 +62,8 @@ namespace VSPets
             canvas.VerticalAlignment = VerticalAlignment.Bottom;
 
             // Position the canvas just above the status bar
-            // The status bar height is typically around 22-24 pixels
-            canvas.Margin = new Thickness(0, 0, 0, StatusBarHeight);
+            // Subtract 6 pixels so pets overlap with the status bar (appear grounded)
+            canvas.Margin = new Thickness(0, 0, 0, StatusBarHeight - 6);
 
             // Add the canvas to the root grid as an overlay (it will be on top of everything)
             if (!_rootGrid.Children.Contains(canvas))
@@ -85,7 +85,7 @@ namespace VSPets
         {
             if (_overlayCanvas != null)
             {
-                _overlayCanvas.Margin = new Thickness(0, 0, 0, StatusBarHeight);
+                _overlayCanvas.Margin = new Thickness(0, 0, 0, StatusBarHeight - 6);
             }
         }
 
@@ -220,7 +220,7 @@ namespace VSPets
             {
                 DependencyObject child = VisualTreeHelper.GetChild(parent, i);
 
-                if (!(child is T typedChild))
+                if (child is not T typedChild)
                 {
                     foundChild = FindChild<T>(child, childName);
 

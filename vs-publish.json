@@ -6,7 +6,30 @@
     "tags": [ "fun" ]
   },
   "assetFiles": [
-
+    {
+      "pathOnDisk": "art/pets-walking.gif",
+      "targetPath": "art/pets-walking.gif"
+    },
+    {
+      "pathOnDisk": "art/build-succeeded.png",
+      "targetPath": "art/build-succeeded.png"
+    },
+    {
+      "pathOnDisk": "art/build-failed.png",
+      "targetPath": "art/build-failed.png"
+    },
+    {
+      "pathOnDisk": "art/pets-meeting.png",
+      "targetPath": "art/pets-meeting.png"
+    },
+    {
+      "pathOnDisk": "art/context-menu.png",
+      "targetPath": "art/context-menu.png"
+    },
+    {
+      "pathOnDisk": "art/options.png",
+      "targetPath": "art/options.png"
+    }
   ],
   "overview": "README.md",
   "publisher": "MadsKristensen",
