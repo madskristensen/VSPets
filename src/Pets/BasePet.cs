@@ -40,6 +40,10 @@ namespace VSPets.Pets
         // Edge exit/re-entry state
         private bool _hasExitedScreen;
 
+        // Dragging state
+        private bool _isDragging;
+        private PetState _stateBeforeDrag;
+
         // Per-pet randomization factors (set once at creation for uniqueness)
         private readonly double _speedVariation;      // 0.8 to 1.2 multiplier
         private readonly double _stateTimeVariation;  // 0.7 to 1.3 multiplier
@@ -96,6 +100,11 @@ namespace VSPets.Pets
         /// </summary>
         public int CurrentFrame => _currentFrame;
 
+        /// <summary>
+        /// Whether the pet is currently being dragged by the user.
+        /// </summary>
+        public bool IsDragging => _isDragging;
+
         public event EventHandler<PetStateChangedEventArgs> StateChanged;
         public event EventHandler<PetPositionChangedEventArgs> PositionChanged;
         public event EventHandler<PetSpeechEventArgs> Speech;
@@ -149,6 +158,7 @@ namespace VSPets.Pets
                 PetState.Happy => "swipe",
                 PetState.Exiting => "walk",
                 PetState.Entering => "walk",
+                PetState.Dragging => "idle", // Use idle sprite while being dragged
                 _ => "idle"
             };
         }
@@ -196,6 +206,14 @@ namespace VSPets.Pets
 
         public void Update(double deltaTime, double canvasWidth)
         {
+            // Skip all updates when being dragged - position is controlled by user
+            if (_isDragging)
+            {
+                // Only update breathing for a subtle "held" animation
+                UpdateBreathingAnimation(deltaTime);
+                return;
+            }
+
             _stateTimer += deltaTime;
 
             // Update frame-based animation (leg movement)
@@ -602,11 +620,12 @@ namespace VSPets.Pets
                 PetState.Happy => _happyDuration,
                 PetState.Exiting => 30.0, // Long duration - will be cut short when off screen
                 PetState.Entering => 30.0, // Long duration - will transition to Walking when on screen
+                PetState.Dragging => double.MaxValue, // Indefinite - controlled by user
                 _ => 3.0
             };
 
             // Apply per-pet time variation (except for special states)
-            if (state != PetState.Exiting && state != PetState.Entering && state != PetState.Happy)
+            if (state != PetState.Exiting && state != PetState.Entering && state != PetState.Happy && state != PetState.Dragging)
             {
                 baseDuration *= _stateTimeVariation;
             }
@@ -633,6 +652,49 @@ namespace VSPets.Pets
             {
                 Message = "👋",
                 DurationMs = 1500
+            });
+        }
+
+        /// <summary>
+        /// Starts dragging the pet - pauses normal movement and behavior.
+        /// </summary>
+        public void StartDrag()
+        {
+            if (_isDragging)
+            {
+                return;
+            }
+
+            _isDragging = true;
+            _stateBeforeDrag = _currentState;
+            SetState(PetState.Dragging);
+
+            Speech?.Invoke(this, new PetSpeechEventArgs
+            {
+                Message = "😮",
+                DurationMs = 1000
+            });
+        }
+
+        /// <summary>
+        /// Ends dragging and resumes normal behavior from idle state.
+        /// </summary>
+        public void EndDrag()
+        {
+            if (!_isDragging)
+            {
+                return;
+            }
+
+            _isDragging = false;
+
+            // Resume with idle state (let it naturally transition from there)
+            SetState(PetState.Idle);
+
+            Speech?.Invoke(this, new PetSpeechEventArgs
+            {
+                Message = "😊",
+                DurationMs = 1000
             });
         }
 

@@ -107,6 +107,21 @@ namespace VSPets.Pets
         void SetDirection(PetDirection direction);
 
         /// <summary>
+        /// Whether the pet is currently being dragged.
+        /// </summary>
+        bool IsDragging { get; }
+
+        /// <summary>
+        /// Starts dragging the pet.
+        /// </summary>
+        void StartDrag();
+
+        /// <summary>
+        /// Ends dragging and resumes normal behavior.
+        /// </summary>
+        void EndDrag();
+
+        /// <summary>
         /// Event fired when the pet's state changes.
         /// </summary>
         event EventHandler<PetStateChangedEventArgs> StateChanged;

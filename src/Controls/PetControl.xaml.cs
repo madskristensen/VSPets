@@ -23,6 +23,11 @@ namespace VSPets.Controls
         private readonly ScaleTransform _flipTransform;
         private bool _isDisposed;
 
+        // Drag state
+        private bool _isDragging;
+        private Point _dragStartPoint;
+        private double _dragStartX;
+
         /// <summary>
         /// Gets or sets the pet this control displays.
         /// </summary>
@@ -84,6 +89,11 @@ namespace VSPets.Controls
             MouseEnter += OnMouseEnter;
             MouseLeave += OnMouseLeave;
             MouseRightButtonUp += OnRightClick;
+
+            // Set up drag handlers
+            MouseLeftButtonDown += OnMouseLeftButtonDown;
+            MouseLeftButtonUp += OnMouseLeftButtonUp;
+            MouseMove += OnMouseMove;
 
             // Initialize speech timer
             _speechTimer = new DispatcherTimer
@@ -412,6 +422,73 @@ namespace VSPets.Controls
 
             // Update sprite to return to normal expression
             UpdateSprite();
+
+            // End drag if mouse leaves while dragging
+            if (_isDragging)
+            {
+                EndDrag();
+            }
+        }
+
+        private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (_pet == null) return;
+
+            // Start drag operation
+            _isDragging = true;
+            _dragStartPoint = e.GetPosition(Parent as UIElement);
+            _dragStartX = _pet.X;
+
+            // Capture mouse to receive events even if cursor leaves control
+            CaptureMouse();
+
+            // Notify pet that dragging started
+            _pet.StartDrag();
+
+            e.Handled = true;
+        }
+
+        private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isDragging)
+            {
+                EndDrag();
+                e.Handled = true;
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isDragging || _pet == null) return;
+
+            // Calculate new position based on drag delta
+            Point currentPoint = e.GetPosition(Parent as UIElement);
+            var deltaX = currentPoint.X - _dragStartPoint.X;
+            var newX = _dragStartX + deltaX;
+
+            // Clamp to canvas bounds
+            if (Parent is Canvas canvas)
+            {
+                var maxX = canvas.ActualWidth - ActualWidth;
+                newX = Math.Max(0, Math.Min(newX, maxX));
+            }
+
+            // Update pet position
+            _pet.SetPosition(newX, _pet.Y);
+
+            // Update control position immediately
+            Canvas.SetLeft(this, newX);
+        }
+
+        private void EndDrag()
+        {
+            if (!_isDragging) return;
+
+            _isDragging = false;
+            ReleaseMouseCapture();
+
+            // Notify pet that dragging ended
+            _pet?.EndDrag();
         }
 
         private void OnRightClick(object sender, MouseButtonEventArgs e)
@@ -532,6 +609,12 @@ namespace VSPets.Controls
 
             _isDisposed = true;
 
+            // End any active drag
+            if (_isDragging)
+            {
+                EndDrag();
+            }
+
             // Stop and clean up timers
             _speechTimer?.Stop();
 
@@ -539,6 +622,9 @@ namespace VSPets.Controls
             MouseEnter -= OnMouseEnter;
             MouseLeave -= OnMouseLeave;
             MouseRightButtonUp -= OnRightClick;
+            MouseLeftButtonDown -= OnMouseLeftButtonDown;
+            MouseLeftButtonUp -= OnMouseLeftButtonUp;
+            MouseMove -= OnMouseMove;
 
             // Unsubscribe from pet events
             if (_pet != null)

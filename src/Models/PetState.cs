@@ -38,7 +38,12 @@ namespace VSPets.Models
         /// <summary>
         /// Pet is walking back onto the screen from an edge.
         /// </summary>
-        Entering
+        Entering,
+
+        /// <summary>
+        /// Pet is being dragged by the user.
+        /// </summary>
+        Dragging
     }
 
     /// <summary>

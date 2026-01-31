@@ -116,7 +116,10 @@ namespace VSPets
             if (disposing)
             {
                 // Unsubscribe from events
-                _buildEvents?.OnBuildDone -= OnBuildDone;
+                if (_buildEvents != null)
+                {
+                    _buildEvents.OnBuildDone -= OnBuildDone;
+                }
 
                 // Save pets before closing - must complete synchronously to avoid data loss
                 try

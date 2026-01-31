@@ -50,6 +50,7 @@ namespace VSPets.Animation
                 PetState.Happy => 2,      // Excited/waving
                 PetState.Exiting => 4,    // Walk cycle (leaving)
                 PetState.Entering => 4,   // Walk cycle (entering)
+                PetState.Dragging => 2,   // Subtle "held" animation
                 _ => 1
             };
         }
@@ -68,6 +69,7 @@ namespace VSPets.Animation
                 PetState.Happy => 0.2,     // Quick excited motion
                 PetState.Exiting => 0.15,  // Normal walk (exiting)
                 PetState.Entering => 0.15, // Normal walk (entering)
+                PetState.Dragging => 0.3,  // Slow wiggle while held
                 _ => 0.3
             };
         }
