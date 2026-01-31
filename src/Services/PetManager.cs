@@ -17,8 +17,8 @@ namespace VSPets.Services
         private static PetManager _instance;
         private static readonly object _instanceLock = new();
 
-        private readonly List<IPet> _pets = new();
-        private readonly Dictionary<Guid, PetControl> _petControls = new();
+        private readonly List<IPet> _pets = [];
+        private readonly Dictionary<Guid, PetControl> _petControls = [];
         private readonly object _petLock = new();
         private readonly Random _random = new(); // Shared random for better variance
 
@@ -26,7 +26,7 @@ namespace VSPets.Services
         private bool _lastSpawnedFromLeft;
         private bool _isFirstSpawn = true; // Track if this is the first spawn
         private DateTime _lastSpawnTime = DateTime.MinValue;
-        private const double MinSpawnDelaySeconds = 2.0; // Minimum time between spawns from same side
+        private const double _minSpawnDelaySeconds = 2.0; // Minimum time between spawns from same side
 
         private PetHostCanvas _hostCanvas;
         private DispatcherTimer _updateTimer;
@@ -42,10 +42,7 @@ namespace VSPets.Services
             {
                 lock (_instanceLock)
                 {
-                    if (_instance == null)
-                    {
-                        _instance = new PetManager();
-                    }
+                    _instance ??= new PetManager();
                     return _instance;
                 }
             }
@@ -103,7 +100,7 @@ namespace VSPets.Services
 
             // Initialize the status bar injection
             var injected = await VSPets.StatusBarInjector.InjectControlAsync(CreateHostCanvas());
-            
+
             if (!injected)
             {
                 System.Diagnostics.Debug.WriteLine("VSPets: Failed to inject into status bar");
@@ -185,7 +182,7 @@ namespace VSPets.Services
                 enterFromLeft = _random.NextDouble() < 0.5;
                 _isFirstSpawn = false;
             }
-            else if (timeSinceLastSpawn < MinSpawnDelaySeconds)
+            else if (timeSinceLastSpawn < _minSpawnDelaySeconds)
             {
                 // Recent spawn - force opposite side to avoid overlap
                 enterFromLeft = !_lastSpawnedFromLeft;
@@ -245,9 +242,8 @@ namespace VSPets.Services
         /// </summary>
         public async Task<IPet> AddRandomPetAsync()
         {
-            var random = new Random();
-            PetType[] petTypes = new[] { PetType.Cat, PetType.Dog, PetType.Fox };
-            PetType petType = petTypes[random.Next(petTypes.Length)];
+            PetType[] petTypes = [PetType.Cat, PetType.Dog, PetType.Fox];
+            PetType petType = petTypes[_random.Next(petTypes.Length)];
 
             return await AddPetAsync(petType);
         }
@@ -278,6 +274,7 @@ namespace VSPets.Services
             if (control != null)
             {
                 _hostCanvas.RemovePet(control);
+                control.Dispose(); // Clean up event subscriptions and timers
             }
 
             pet.Dispose();
@@ -299,7 +296,7 @@ namespace VSPets.Services
             List<Guid> petIds;
             lock (_petLock)
             {
-                petIds = _pets.Select(p => p.Id).ToList();
+                petIds = [.. _pets.Select(p => p.Id)];
             }
 
             foreach (Guid id in petIds)
@@ -339,7 +336,7 @@ namespace VSPets.Services
             List<IPet> pets;
             lock (_petLock)
             {
-                pets = _pets.ToList();
+                pets = [.. _pets];
             }
 
             foreach (IPet pet in pets)
@@ -355,8 +352,6 @@ namespace VSPets.Services
 
         private IPet CreatePet(PetType petType, PetColor? color)
         {
-            var random = new Random();
-
             return petType switch
             {
                 PetType.Cat => color.HasValue ? new Cat(color.Value) : Cat.CreateRandom(),
@@ -381,7 +376,7 @@ namespace VSPets.Services
             List<IPet> petsToUpdate;
             lock (_petLock)
             {
-                petsToUpdate = _pets.ToList();
+                petsToUpdate = [.. _pets];
             }
 
             foreach (IPet pet in petsToUpdate)
@@ -390,12 +385,13 @@ namespace VSPets.Services
                 {
                     pet.Update(deltaTime, canvasWidth);
 
-                    // Update control position
+                    // Update control position and breathing animation
                     if (_petControls.TryGetValue(pet.Id, out PetControl control))
                     {
                         Canvas.SetLeft(control, pet.X);
                         Canvas.SetBottom(control, pet.Y);
                         control.SetDirection(pet.Direction);
+                        control.UpdateBreathing(); // Drive breathing animation from central timer
                     }
                 }
                 catch (Exception ex)
@@ -409,14 +405,14 @@ namespace VSPets.Services
         }
 
         private double _lastInteractionTime;
-        private const double InteractionCooldown = 8.0; // Seconds between interactions
+        private const double _interactionCooldown = 8.0; // Seconds between interactions
 
         private void CheckPetInteractions(List<IPet> pets)
         {
             _lastInteractionTime += _updateTimer.Interval.TotalSeconds;
 
             // Don't check too frequently
-            if (_lastInteractionTime < InteractionCooldown || pets.Count < 2)
+            if (_lastInteractionTime < _interactionCooldown || pets.Count < 2)
             {
                 return;
             }
@@ -445,9 +441,8 @@ namespace VSPets.Services
 
         private void TriggerPetMeeting(IPet pet1, IPet pet2)
         {
-            var random = new Random();
-            var greetings = new[] { "👋", "❤️", "🤝", "✨", "💕" };
-            var greeting = greetings[random.Next(greetings.Length)];
+            string[] greetings = ["👋", "❤️", "🤝", "✨", "💕"];
+            var greeting = greetings[_random.Next(greetings.Length)];
 
             // Make both pets happy and show a greeting
             if (pet1 is BasePet basePet1)
@@ -498,12 +493,19 @@ namespace VSPets.Services
 
             lock (_petLock)
             {
+                // Dispose all controls first
+                foreach (PetControl control in _petControls.Values)
+                {
+                    control.Dispose();
+                }
+                _petControls.Clear();
+
+                // Then dispose all pets
                 foreach (IPet pet in _pets)
                 {
                     pet.Dispose();
                 }
                 _pets.Clear();
-                _petControls.Clear();
             }
 
             _hostCanvas = null;

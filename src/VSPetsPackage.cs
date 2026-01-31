@@ -1,20 +1,16 @@
-global using Community.VisualStudio.Toolkit;
-
-global using Microsoft.VisualStudio.Shell;
-
 global using System;
-
+global using Community.VisualStudio.Toolkit;
+global using Microsoft.VisualStudio.Shell;
 global using Task = System.Threading.Tasks.Task;
-
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using EnvDTE;
 using EnvDTE80;
 using VSPets.Options;
-using VSPets.Services;
-using System.Collections.Generic;
 using VSPets.Pets;
+using VSPets.Services;
 
 namespace VSPets
 {
@@ -24,7 +20,7 @@ namespace VSPets
     [Guid(PackageGuids.VSPetsString)]
     [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "VS Pets", "General", 0, 0, true)]
+    [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), Vsix.Name, "General", 0, 0, true, SupportsProfiles = true)]
     public sealed class VSPetsPackage : ToolkitPackage
     {
         private DTE2 _dte;
@@ -87,12 +83,10 @@ namespace VSPets
                     // Persistence disabled but auto-spawn enabled
                     await PetManager.Instance.AddRandomPetAsync();
                 }
-
-                System.Diagnostics.Debug.WriteLine("VSPets: Package initialized successfully");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: Initialization failed: {ex.Message}");
+                await ex.LogAsync();
             }
         }
 
@@ -117,17 +111,14 @@ namespace VSPets
             }).FireAndForget();
         }
 
-        protected override async void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 // Unsubscribe from events
-                if (_buildEvents != null)
-                {
-                    _buildEvents.OnBuildDone -= OnBuildDone;
-                }
+                _buildEvents?.OnBuildDone -= OnBuildDone;
 
-                // Save pets before closing
+                // Save pets before closing - must complete synchronously to avoid data loss
                 try
                 {
                     General settings = General.Instance;
@@ -142,12 +133,23 @@ namespace VSPets
                             Size = p.Size
                         }).ToList();
 
-                        PetPersistenceService.SavePetsAsync(petDataList).Wait(1000);
+                        // Use synchronous save with timeout to ensure data is persisted before VS exits
+                        using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+                        {
+                            try
+                            {
+                                JoinableTaskFactory.Run(() => PetPersistenceService.SavePetsAsync(petDataList));
+                            }
+                            catch (OperationCanceledException)
+                            {
+                                System.Diagnostics.Debug.WriteLine("VSPets: Save timed out during shutdown");
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"VSPets: Failed to save on dispose: {ex.Message}");
+                    ex.Log();
                 }
 
                 PetManager.Instance.Dispose();

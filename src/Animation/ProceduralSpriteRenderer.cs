@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -15,8 +16,16 @@ namespace VSPets.Animation
         private static readonly Lazy<ProceduralSpriteRenderer> _instance =
             new(() => new ProceduralSpriteRenderer());
 
+        // Cache with access tracking for LRU eviction
         private readonly Dictionary<string, BitmapSource> _frameCache =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, long> _accessOrder =
+            new(StringComparer.OrdinalIgnoreCase);
+        private long _accessCounter;
+
+        // Maximum number of cached sprites (5 pet types × 6 colors × 7 states × 4 frames = 840 max realistic)
+        // Cap at 500 to allow reasonable variety while limiting memory
+        private const int _maxCacheSize = 500;
 
         private readonly object _cacheLock = new();
 
@@ -74,12 +83,40 @@ namespace VSPets.Animation
             {
                 if (_frameCache.TryGetValue(key, out BitmapSource cached))
                 {
+                    // Update access order for LRU tracking
+                    _accessOrder[key] = ++_accessCounter;
                     return cached;
+                }
+
+                // Evict oldest entries if cache is full
+                if (_frameCache.Count >= _maxCacheSize)
+                {
+                    EvictOldestEntries(_maxCacheSize / 4); // Remove 25% of entries
                 }
 
                 BitmapSource sprite = CreateSprite(petType, color, state, frame, size);
                 _frameCache[key] = sprite;
+                _accessOrder[key] = ++_accessCounter;
                 return sprite;
+            }
+        }
+
+        /// <summary>
+        /// Evicts the oldest entries from the cache.
+        /// </summary>
+        private void EvictOldestEntries(int count)
+        {
+            // Find the oldest entries by access order
+            var keysToRemove = _accessOrder
+                .OrderBy(kvp => kvp.Value)
+                .Take(count)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (var key in keysToRemove)
+            {
+                _frameCache.Remove(key);
+                _accessOrder.Remove(key);
             }
         }
 
@@ -91,6 +128,8 @@ namespace VSPets.Animation
             lock (_cacheLock)
             {
                 _frameCache.Clear();
+                _accessOrder.Clear();
+                _accessCounter = 0;
             }
         }
 

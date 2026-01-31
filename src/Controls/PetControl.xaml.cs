@@ -14,14 +14,14 @@ namespace VSPets.Controls
     /// <summary>
     /// WPF control that renders and animates a pet.
     /// </summary>
-    public partial class PetControl : UserControl
+    public partial class PetControl : UserControl, IDisposable
     {
         private IPet _pet;
         private BasePet _basePet; // For accessing breathing/behavior
         private readonly DispatcherTimer _speechTimer;
-        private readonly DispatcherTimer _breathingTimer;
         private readonly ScaleTransform _breathingTransform;
         private readonly ScaleTransform _flipTransform;
+        private bool _isDisposed;
 
         /// <summary>
         /// Gets or sets the pet this control displays.
@@ -95,17 +95,14 @@ namespace VSPets.Controls
                 HideSpeechBubble();
                 _speechTimer.Stop();
             };
-
-            // Initialize breathing animation timer (runs at ~30fps)
-            _breathingTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(33)
-            };
-            _breathingTimer.Tick += OnBreathingTick;
-            _breathingTimer.Start();
+            // Note: Breathing animation is now driven by PetManager's central update timer
+            // via the UpdateBreathing() method to reduce timer overhead
         }
 
-        private void OnBreathingTick(object sender, EventArgs e)
+        /// <summary>
+        /// Updates the breathing animation. Called by PetManager during the central update tick.
+        /// </summary>
+        public void UpdateBreathing()
         {
             if (_basePet == null) return;
 
@@ -346,27 +343,54 @@ namespace VSPets.Controls
 
         private void OnPetStateChanged(object sender, PetStateChangedEventArgs e)
         {
-            Dispatcher.Invoke(() => UpdateSprite());
+            // Use BeginInvoke to avoid blocking if not already on UI thread
+            if (Dispatcher.CheckAccess())
+            {
+                UpdateSprite();
+            }
+            else
+            {
+                Dispatcher.BeginInvoke(new Action(UpdateSprite));
+            }
         }
 
         private void OnPetPositionChanged(object sender, PetPositionChangedEventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            // Use BeginInvoke to avoid blocking if not already on UI thread
+            if (Dispatcher.CheckAccess())
             {
                 Canvas.SetLeft(this, e.NewX);
                 Canvas.SetBottom(this, e.NewY);
-
-                // Update direction in case it changed (pet should face direction of travel)
                 if (_pet != null)
                 {
                     SetDirection(_pet.Direction);
                 }
-            });
+            }
+            else
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    Canvas.SetLeft(this, e.NewX);
+                    Canvas.SetBottom(this, e.NewY);
+                    if (_pet != null)
+                    {
+                        SetDirection(_pet.Direction);
+                    }
+                }));
+            }
         }
 
         private void OnPetSpeech(object sender, PetSpeechEventArgs e)
         {
-            Dispatcher.Invoke(() => ShowSpeechBubble(e.Message, e.DurationMs));
+            // Use BeginInvoke to avoid blocking if not already on UI thread
+            if (Dispatcher.CheckAccess())
+            {
+                ShowSpeechBubble(e.Message, e.DurationMs);
+            }
+            else
+            {
+                Dispatcher.BeginInvoke(new Action(() => ShowSpeechBubble(e.Message, e.DurationMs)));
+            }
         }
 
         private void OnMouseEnter(object sender, MouseEventArgs e)
@@ -494,6 +518,44 @@ namespace VSPets.Controls
             // Open the VS Pets options page in Tools > Options
             Community.VisualStudio.Toolkit.VS.Settings.OpenAsync<Options.OptionsProvider.GeneralOptions>()
                 .FileAndForget(nameof(OnSettingsClick));
+        }
+
+        /// <summary>
+        /// Disposes the control and cleans up event subscriptions.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+
+            // Stop and clean up timers
+            _speechTimer?.Stop();
+
+            // Unsubscribe from mouse events
+            MouseEnter -= OnMouseEnter;
+            MouseLeave -= OnMouseLeave;
+            MouseRightButtonUp -= OnRightClick;
+
+            // Unsubscribe from pet events
+            if (_pet != null)
+            {
+                _pet.StateChanged -= OnPetStateChanged;
+                _pet.PositionChanged -= OnPetPositionChanged;
+                _pet.Speech -= OnPetSpeech;
+            }
+
+            if (_basePet != null)
+            {
+                _basePet.BehaviorTriggered -= OnPetBehavior;
+                _basePet.FrameChanged -= OnPetFrameChanged;
+            }
+
+            _pet = null;
+            _basePet = null;
         }
     }
 }

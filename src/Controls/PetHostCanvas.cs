@@ -15,7 +15,7 @@ namespace VSPets.Controls
     public class PetHostCanvas : Canvas
     {
         private readonly DispatcherTimer _updateTimer;
-        private readonly List<FrameworkElement> _pets = new();
+        private readonly List<FrameworkElement> _pets = [];
         private readonly object _petLock = new();
 
         /// <summary>

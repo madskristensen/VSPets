@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using VSPets.Models;
@@ -13,11 +11,11 @@ namespace VSPets.Services
     /// </summary>
     public class PetPersistenceService
     {
-        private static readonly string DataFolder = Path.Combine(
+        private static readonly string _dataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "VSPets");
 
-        private static readonly string PetsFile = Path.Combine(DataFolder, "pets.json");
+        private static readonly string _petsFile = Path.Combine(_dataFolder, "pets.json");
 
         /// <summary>
         /// Saves the current pet collection to disk.
@@ -26,19 +24,21 @@ namespace VSPets.Services
         {
             try
             {
-                if (!Directory.Exists(DataFolder))
+                if (!Directory.Exists(_dataFolder))
                 {
-                    Directory.CreateDirectory(DataFolder);
+                    Directory.CreateDirectory(_dataFolder);
                 }
 
-                var json = JsonConvert.SerializeObject(pets.ToList(), Formatting.Indented);
-                
-                using (var writer = new StreamWriter(PetsFile, false))
+                // Materialize once to avoid double enumeration
+                List<PetData> petList = [.. pets];
+                var json = JsonConvert.SerializeObject(petList, Formatting.Indented);
+
+                using (var writer = new StreamWriter(_petsFile, false))
                 {
                     await writer.WriteAsync(json);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"VSPets: Saved {pets.Count()} pets to disk");
+                System.Diagnostics.Debug.WriteLine($"VSPets: Saved {petList.Count} pets to disk");
             }
             catch (Exception ex)
             {
@@ -53,24 +53,24 @@ namespace VSPets.Services
         {
             try
             {
-                if (!File.Exists(PetsFile))
+                if (!File.Exists(_petsFile))
                 {
-                    return new List<PetData>();
+                    return [];
                 }
 
-                using (var reader = new StreamReader(PetsFile))
+                using (var reader = new StreamReader(_petsFile))
                 {
                     var json = await reader.ReadToEndAsync();
                     List<PetData> pets = JsonConvert.DeserializeObject<List<PetData>>(json);
-                    
+
                     System.Diagnostics.Debug.WriteLine($"VSPets: Loaded {pets?.Count ?? 0} pets from disk");
-                    return pets ?? new List<PetData>();
+                    return pets ?? [];
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"VSPets: Failed to load pets: {ex.Message}");
-                return new List<PetData>();
+                return [];
             }
         }
 
@@ -81,9 +81,9 @@ namespace VSPets.Services
         {
             try
             {
-                if (File.Exists(PetsFile))
+                if (File.Exists(_petsFile))
                 {
-                    File.Delete(PetsFile);
+                    File.Delete(_petsFile);
                 }
             }
             catch (Exception ex)

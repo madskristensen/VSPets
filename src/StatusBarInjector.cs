@@ -73,10 +73,11 @@ namespace VSPets
                 Grid.SetRowSpan(canvas, 100); // Span all rows
                 Grid.SetColumnSpan(canvas, 100); // Span all columns
                 _rootGrid.Children.Add(canvas);
-            }
 
-            // Update canvas position when status bar size changes
-            _statusBarPanel.SizeChanged += OnStatusBarSizeChanged;
+                // Update canvas position when status bar size changes
+                // Subscribe only when adding canvas to avoid duplicate subscriptions
+                _statusBarPanel.SizeChanged += OnStatusBarSizeChanged;
+            }
 
             return true;
         }

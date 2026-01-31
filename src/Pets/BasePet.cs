@@ -29,6 +29,7 @@ namespace VSPets.Pets
         private double _nextBehaviorTime;
         private bool _isDoingBehavior;
         private string _currentBehavior;
+        private double _behaviorEndTime; // Timer to end current behavior
 
         // Frame animation state
         private int _currentFrame;
@@ -264,6 +265,19 @@ namespace VSPets.Pets
             {
                 _isDoingBehavior = false;
                 _currentBehavior = null;
+                _behaviorEndTime = 0;
+                return;
+            }
+
+            // Check if current behavior should end
+            if (_isDoingBehavior && _behaviorEndTime > 0)
+            {
+                _behaviorEndTime -= deltaTime;
+                if (_behaviorEndTime <= 0)
+                {
+                    _isDoingBehavior = false;
+                    _currentBehavior = null;
+                }
                 return;
             }
 
@@ -277,6 +291,7 @@ namespace VSPets.Pets
                 {
                     _currentBehavior = behaviors[_random.Next(behaviors.Length)];
                     _isDoingBehavior = true;
+                    _behaviorEndTime = GetBehaviorDuration(_currentBehavior) / 1000.0; // Convert ms to seconds
 
                     // Emit the behavior for visual feedback
                     BehaviorTriggered?.Invoke(this, new PetBehaviorEventArgs
@@ -299,13 +314,6 @@ namespace VSPets.Pets
 
                 // Reset timer for next behavior
                 _nextBehaviorTime = RandomRange(_minBehaviorInterval, _maxBehaviorInterval);
-
-                // End behavior after a short time
-                System.Threading.Tasks.Task.Delay(GetBehaviorDuration(_currentBehavior)).ContinueWith(_ =>
-                {
-                    _isDoingBehavior = false;
-                    _currentBehavior = null;
-                });
             }
         }
 

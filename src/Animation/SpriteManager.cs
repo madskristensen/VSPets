@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Windows.Media.Imaging;
 using VSPets.Models;
 
@@ -12,10 +9,10 @@ namespace VSPets.Animation
     /// </summary>
     public class SpriteManager
     {
-        private static readonly Lazy<SpriteManager> _instance = 
+        private static readonly Lazy<SpriteManager> _instance =
             new(() => new SpriteManager());
 
-        private readonly Dictionary<string, BitmapImage> _spriteCache = 
+        private readonly Dictionary<string, BitmapImage> _spriteCache =
             new(StringComparer.OrdinalIgnoreCase);
 
         private readonly object _cacheLock = new();
@@ -87,7 +84,7 @@ namespace VSPets.Animation
 
             // Try embedded resource first
             var resourcePath = $"Resources/Pets/{petTypeName}/{colorName}_{animationName}_8fps.gif";
-            
+
             try
             {
                 var uri = new Uri($"pack://application:,,,/VSPets;component/{resourcePath}", UriKind.Absolute);
@@ -102,11 +99,11 @@ namespace VSPets.Animation
             catch
             {
                 // Resource not found, try alternative paths or return null
-                return TryLoadFallbackSprite(petType, animationName);
+                return TryLoadFallbackSprite(animationName);
             }
         }
 
-        private BitmapImage TryLoadFallbackSprite(PetType petType, string animationName)
+        private BitmapImage TryLoadFallbackSprite(string animationName)
         {
             // Try to load a default/fallback sprite
             // This could be a simple colored shape or a generic pet sprite
