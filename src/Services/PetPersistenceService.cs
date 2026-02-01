@@ -61,7 +61,7 @@ namespace VSPets.Services
                     var json = await reader.ReadToEndAsync();
                     List<PetData> pets = JsonConvert.DeserializeObject<List<PetData>>(json);
 
-                    System.Diagnostics.Debug.WriteLine($"VSPets: Loaded {pets?.Count ?? 0} pets from disk");
+                    await new InvalidOperationException($"VSPets: Loaded {pets?.Count ?? 0} pets from disk").LogAsync();
                     return pets ?? [];
                 }
             }
