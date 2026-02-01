@@ -37,12 +37,10 @@ namespace VSPets.Services
                 {
                     await writer.WriteAsync(json);
                 }
-
-                System.Diagnostics.Debug.WriteLine($"VSPets: Saved {petList.Count} pets to disk");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: Failed to save pets: {ex.Message}");
+                await ex.LogAsync();
             }
         }
 

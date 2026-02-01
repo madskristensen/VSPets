@@ -25,6 +25,7 @@ namespace VSPets
     {
         private DTE2 _dte;
         private EnvDTE.BuildEvents _buildEvents;
+        private RatingPrompt _ratingPrompt;
         private readonly Random _startupRandom = new();
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -44,6 +45,10 @@ namespace VSPets
                 PetManager.Instance.MaxPets = Math.Max(1, Math.Min(settings.MaxPets, 10));
 
                 await PetManager.Instance.InitializeAsync();
+
+                // Rating prompt
+                _ratingPrompt = new RatingPrompt("MadsKristensen.VSPets", Vsix.Name, settings, 5);
+                PetManager.Instance.PetAdded += OnPetAdded;
 
                 // Subscribe to build events
                 _dte = await VS.GetServiceAsync<DTE, DTE2>();
@@ -113,8 +118,15 @@ namespace VSPets
             }).FireAndForget();
         }
 
+        private void OnPetAdded(object sender, PetEventArgs e)
+        {
+            _ratingPrompt?.RegisterSuccessfulUsage();
+        }
+
         protected override void Dispose(bool disposing)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (disposing)
             {
                 // Unsubscribe from events
@@ -122,6 +134,8 @@ namespace VSPets
                 {
                     _buildEvents.OnBuildDone -= OnBuildDone;
                 }
+
+                PetManager.Instance.PetAdded -= OnPetAdded;
 
                 // Save pets before closing - must complete synchronously to avoid data loss
                 try

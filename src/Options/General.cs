@@ -15,7 +15,7 @@ namespace VSPets.Options
     /// <summary>
     /// General settings for VS Pets.
     /// </summary>
-    public class General : BaseOptionModel<General>
+    public class General : BaseOptionModel<General>, IRatingConfig
     {
         [Category("Pets")]
         [DisplayName("Maximum Pets")]
@@ -53,6 +53,10 @@ namespace VSPets.Options
         [Description("Save and restore your pets when Visual Studio restarts")]
         [DefaultValue(true)]
         public bool RememberPets { get; set; } = true;
+
+        [Browsable(false)]
+        [DefaultValue(0)]
+        public int RatingRequests { get; set; }
     }
 
     /// <summary>

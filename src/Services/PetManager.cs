@@ -149,7 +149,6 @@ namespace VSPets.Services
 
             if (PetCount >= MaxPets)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: Maximum pets ({MaxPets}) reached");
                 return null;
             }
 
@@ -171,7 +170,7 @@ namespace VSPets.Services
             control.SetSize(pet.Size);
 
             // Determine spawn side - alternate sides and respect minimum delay
-            var canvasWidth = VSPets.StatusBarInjector.StatusBarWidth;
+            var canvasWidth = StatusBarInjector.StatusBarWidth;
             var petSize = (int)pet.Size;
             var timeSinceLastSpawn = (DateTime.Now - _lastSpawnTime).TotalSeconds;
 
@@ -231,8 +230,6 @@ namespace VSPets.Services
             _hostCanvas.AddPet(control, initialX);
 
             PetAdded?.Invoke(this, new PetEventArgs { Pet = pet });
-
-            System.Diagnostics.Debug.WriteLine($"VSPets: Added {pet.Name} the {pet.PetType} entering from {(enterFromLeft ? "left" : "right")}");
 
             return pet;
         }
