@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
+             xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
              d:DesignHeight="48" d:DesignWidth="48"
              IsHitTestVisible="True">
@@ -59,7 +60,7 @@
             
             <emoji:TextBlock x:Name="SpeechText"
                              FontSize="18"
-                             Foreground="Black"
+                             Foreground="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowTextBrushKey}}"
                              TextAlignment="Center"
                              Text="👋"/>
         </Border>
