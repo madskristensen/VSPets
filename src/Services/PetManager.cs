@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using VSPets.Animation;
 using VSPets.Controls;
 using VSPets.Models;
 using VSPets.Pets;
@@ -19,7 +21,7 @@ namespace VSPets.Services
 
         private readonly List<IPet> _pets = [];
         private readonly Dictionary<Guid, PetControl> _petControls = [];
-        private readonly object _petLock = new();
+        private readonly ReaderWriterLockSlim _petLock = new(LockRecursionPolicy.SupportsRecursion);
         private readonly Random _random = new(); // Shared random for better variance
 
         // Track last spawn side to avoid spawning multiple pets from same side
@@ -70,9 +72,14 @@ namespace VSPets.Services
         {
             get
             {
-                lock (_petLock)
+                _petLock.EnterReadLock();
+                try
                 {
                     return _pets.Count;
+                }
+                finally
+                {
+                    _petLock.ExitReadLock();
                 }
             }
         }
@@ -107,7 +114,7 @@ namespace VSPets.Services
             }
 
             // Set up the update timer for pet animations
-            _updateTimer = new DispatcherTimer(DispatcherPriority.Render)
+            _updateTimer = new DispatcherTimer(DispatcherPriority.Background)
             {
                 Interval = TimeSpan.FromMilliseconds(33) // ~30 FPS
             };
@@ -155,6 +162,10 @@ namespace VSPets.Services
             {
                 return null;
             }
+
+            // Pre-warm sprite cache in background to avoid rendering stutters
+            // This renders common animation frames off the UI thread
+            ProceduralSpriteRenderer.Instance.PreWarmCacheAsync(pet.PetType, pet.Color, (int)pet.Size);
 
             // Set custom name if provided
             if (!string.IsNullOrWhiteSpace(name))
@@ -217,10 +228,15 @@ namespace VSPets.Services
             control.SetDirection(initialDirection);
 
             // Add to tracking
-            lock (_petLock)
+            _petLock.EnterWriteLock();
+            try
             {
                 _pets.Add(pet);
                 _petControls[pet.Id] = control;
+            }
+            finally
+            {
+                _petLock.ExitWriteLock();
             }
 
             // Add to canvas
@@ -252,7 +268,8 @@ namespace VSPets.Services
             IPet pet;
             PetControl control;
 
-            lock (_petLock)
+            _petLock.EnterWriteLock();
+            try
             {
                 pet = _pets.FirstOrDefault(p => p.Id == petId);
                 if (pet == null)
@@ -263,6 +280,10 @@ namespace VSPets.Services
                 _pets.Remove(pet);
                 _petControls.TryGetValue(petId, out control);
                 _petControls.Remove(petId);
+            }
+            finally
+            {
+                _petLock.ExitWriteLock();
             }
 
             if (control != null)
@@ -288,9 +309,14 @@ namespace VSPets.Services
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             List<Guid> petIds;
-            lock (_petLock)
+            _petLock.EnterReadLock();
+            try
             {
                 petIds = [.. _pets.Select(p => p.Id)];
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
             }
 
             foreach (Guid id in petIds)
@@ -304,9 +330,14 @@ namespace VSPets.Services
         /// </summary>
         public IReadOnlyList<IPet> GetPets()
         {
-            lock (_petLock)
+            _petLock.EnterReadLock();
+            try
             {
                 return [.. _pets];
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
             }
         }
 
@@ -315,9 +346,14 @@ namespace VSPets.Services
         /// </summary>
         public IPet GetPet(Guid petId)
         {
-            lock (_petLock)
+            _petLock.EnterReadLock();
+            try
             {
                 return _pets.FirstOrDefault(p => p.Id == petId);
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
             }
         }
 
@@ -328,9 +364,14 @@ namespace VSPets.Services
         public void NotifyBuildComplete(bool success)
         {
             List<IPet> pets;
-            lock (_petLock)
+            _petLock.EnterReadLock();
+            try
             {
                 pets = [.. _pets];
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
             }
 
             foreach (IPet pet in pets)
@@ -370,9 +411,14 @@ namespace VSPets.Services
             var canvasWidth = _hostCanvas?.ActualWidth ?? VSPets.StatusBarInjector.StatusBarWidth;
 
             List<IPet> petsToUpdate;
-            lock (_petLock)
+            _petLock.EnterReadLock();
+            try
             {
                 petsToUpdate = [.. _pets];
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
             }
 
             foreach (IPet pet in petsToUpdate)
@@ -487,7 +533,8 @@ namespace VSPets.Services
             _isDisposed = true;
             _updateTimer?.Stop();
 
-            lock (_petLock)
+            _petLock.EnterWriteLock();
+            try
             {
                 // Dispose all controls first
                 foreach (PetControl control in _petControls.Values)
@@ -503,7 +550,12 @@ namespace VSPets.Services
                 }
                 _pets.Clear();
             }
+            finally
+            {
+                _petLock.ExitWriteLock();
+            }
 
+            _petLock.Dispose();
             _hostCanvas = null;
         }
     }

@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -28,6 +30,9 @@ namespace VSPets.Animation
         private const int _maxCacheSize = 500;
 
         private readonly object _cacheLock = new();
+
+        // Track sprites currently being rendered in background to avoid duplicate work
+        private readonly ConcurrentDictionary<string, Task<BitmapSource>> _pendingRenders = new();
 
         /// <summary>
         /// Gets the singleton instance.
@@ -81,6 +86,7 @@ namespace VSPets.Animation
         {
             var key = $"{petType}_{color}_{state}_{frame}_{size}";
 
+            // Fast path: check cache with minimal lock time
             lock (_cacheLock)
             {
                 if (_frameCache.TryGetValue(key, out BitmapSource cached))
@@ -89,18 +95,32 @@ namespace VSPets.Animation
                     _accessOrder[key] = ++_accessCounter;
                     return cached;
                 }
+            }
 
-                // Evict oldest entries if cache is full
-                if (_frameCache.Count >= _maxCacheSize)
+            // Cache miss - create sprite outside lock (CreateSprite is the expensive part)
+            BitmapSource sprite = CreateSprite(petType, color, state, frame, size);
+
+            // Add to cache with eviction check
+            lock (_cacheLock)
+            {
+                // Double-check in case another thread added it
+                if (_frameCache.TryGetValue(key, out BitmapSource existing))
                 {
-                    EvictOldestEntries(_maxCacheSize / 4); // Remove 25% of entries
+                    _accessOrder[key] = ++_accessCounter;
+                    return existing;
                 }
 
-                BitmapSource sprite = CreateSprite(petType, color, state, frame, size);
+                // Evict if needed - use simple count threshold to avoid LINQ in hot path
+                if (_frameCache.Count >= _maxCacheSize)
+                {
+                    EvictOldestEntriesFast(_maxCacheSize / 4);
+                }
+
                 _frameCache[key] = sprite;
                 _accessOrder[key] = ++_accessCounter;
-                return sprite;
             }
+
+            return sprite;
         }
 
         /// <summary>
@@ -123,6 +143,41 @@ namespace VSPets.Animation
         }
 
         /// <summary>
+        /// Fast eviction that avoids LINQ sorting - removes entries below a threshold counter value.
+        /// </summary>
+        private void EvictOldestEntriesFast(int targetCount)
+        {
+            // Calculate threshold: entries with access counter below this are "old"
+            var threshold = _accessCounter - (_maxCacheSize * 2);
+            var removed = 0;
+
+            // Single pass removal - no sorting needed
+            var keysToRemove = new List<string>(targetCount);
+            foreach (KeyValuePair<string, long> kvp in _accessOrder)
+            {
+                if (kvp.Value < threshold)
+                {
+                    keysToRemove.Add(kvp.Key);
+                    if (++removed >= targetCount)
+                        break;
+                }
+            }
+
+            // If threshold didn't find enough, fall back to regular eviction
+            if (removed < targetCount / 2)
+            {
+                EvictOldestEntries(targetCount);
+                return;
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                _frameCache.Remove(key);
+                _accessOrder.Remove(key);
+            }
+        }
+
+        /// <summary>
         /// Clears the frame cache.
         /// </summary>
         public void ClearCache()
@@ -133,6 +188,102 @@ namespace VSPets.Animation
                 _accessOrder.Clear();
                 _accessCounter = 0;
             }
+        }
+
+        /// <summary>
+        /// Pre-warms the cache by rendering sprites for a pet on a background thread.
+        /// Call this when a new pet is added to avoid rendering stutters.
+        /// </summary>
+        /// <param name="petType">The pet type to pre-render.</param>
+        /// <param name="color">The pet color.</param>
+        /// <param name="size">The sprite size.</param>
+        public void PreWarmCacheAsync(PetType petType, PetColor color, int size)
+        {
+            // Pre-render common states in background
+            PetState[] statesToPreRender = [PetState.Idle, PetState.Walking, PetState.Running, PetState.Happy];
+
+            Task.Run(() =>
+            {
+                foreach (PetState state in statesToPreRender)
+                {
+                    var frameCount = GetFrameCount(state);
+                    for (var frame = 0; frame < frameCount; frame++)
+                    {
+                        var key = $"{petType}_{color}_{state}_{frame}_{size}";
+
+                        // Skip if already cached
+                        lock (_cacheLock)
+                        {
+                            if (_frameCache.ContainsKey(key))
+                                continue;
+                        }
+
+                        // Render on background thread - this is safe because:
+                        // 1. RenderTargetBitmap, DrawingVisual, DrawingContext work off UI thread
+                        // 2. Freeze() makes the bitmap immutable and thread-safe
+                        BitmapSource sprite = CreateSprite(petType, color, state, frame, size);
+
+                        // Add to cache
+                        lock (_cacheLock)
+                        {
+                            if (!_frameCache.ContainsKey(key))
+                            {
+                                if (_frameCache.Count >= _maxCacheSize)
+                                {
+                                    EvictOldestEntriesFast(_maxCacheSize / 4);
+                                }
+
+                                _frameCache[key] = sprite;
+                                _accessOrder[key] = ++_accessCounter;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// Pre-renders a specific sprite frame in the background and caches it.
+        /// Returns immediately; the sprite will be available on next RenderFrame call.
+        /// </summary>
+        public void PreRenderFrameAsync(PetType petType, PetColor color, PetState state, int frame, int size)
+        {
+            var key = $"{petType}_{color}_{state}_{frame}_{size}";
+
+            // Skip if already cached or already rendering
+            lock (_cacheLock)
+            {
+                if (_frameCache.ContainsKey(key))
+                    return;
+            }
+
+            if (_pendingRenders.ContainsKey(key))
+                return;
+
+            // Start background render
+            Task<BitmapSource> renderTask = Task.Run(() =>
+            {
+                BitmapSource sprite = CreateSprite(petType, color, state, frame, size);
+
+                lock (_cacheLock)
+                {
+                    if (!_frameCache.ContainsKey(key))
+                    {
+                        if (_frameCache.Count >= _maxCacheSize)
+                        {
+                            EvictOldestEntriesFast(_maxCacheSize / 4);
+                        }
+
+                        _frameCache[key] = sprite;
+                        _accessOrder[key] = ++_accessCounter;
+                    }
+                }
+
+                _pendingRenders.TryRemove(key, out _);
+                return sprite;
+            });
+
+            _pendingRenders.TryAdd(key, renderTask);
         }
 
         private BitmapSource CreateSprite(PetType petType, PetColor color, PetState state, int frame, int size)

@@ -59,7 +59,7 @@
             </Border.Effect>
             
             <emoji:TextBlock x:Name="SpeechText"
-                             FontSize="18"
+                             FontSize="16"
                              Foreground="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowTextBrushKey}}"
                              TextAlignment="Center"
                              Text="👋"/>

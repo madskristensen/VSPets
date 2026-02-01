@@ -129,11 +129,15 @@ namespace VSPets.Controls
             // Refresh the sprite when the animation frame changes
             _basePet?.RefreshSprite();
 
-            // Also update our display to sync with the new frame
-            Dispatcher.BeginInvoke(new Action(() =>
+            // Update display - central timer usually handles this, but sync if needed
+            if (Dispatcher.CheckAccess())
             {
                 UpdateDisplay();
-            }));
+            }
+            else
+            {
+                Dispatcher.BeginInvoke(new Action(UpdateDisplay), DispatcherPriority.Background);
+            }
         }
 
         private void OnPetBehavior(object sender, PetBehaviorEventArgs e)
@@ -195,16 +199,18 @@ namespace VSPets.Controls
             {
                 Children = { _breathingTransform, translateTransform }
             };
-            translateTransform.BeginAnimation(TranslateTransform.XProperty, animation);
 
-            // Reset transform after animation
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
-            timer.Tick += (s, e) =>
+            // Use animation Completed event instead of DispatcherTimer
+            animation.Completed += (s, e) =>
             {
-                PetSprite.RenderTransform = _breathingTransform;
-                timer.Stop();
+                // Restore the standard transform group
+                var transformGroup = new TransformGroup();
+                transformGroup.Children.Add(_flipTransform);
+                transformGroup.Children.Add(_breathingTransform);
+                PetSprite.RenderTransform = transformGroup;
             };
-            timer.Start();
+
+            translateTransform.BeginAnimation(TranslateTransform.XProperty, animation);
         }
 
         private void AnimateTwitch(int durationMs)
@@ -239,20 +245,18 @@ namespace VSPets.Controls
             {
                 Children = { _flipTransform, _breathingTransform, rotateTransform }
             };
-            rotateTransform.BeginAnimation(RotateTransform.AngleProperty, animation);
 
-            // Reset transform after animation
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(durationMs) };
-            timer.Tick += (s, e) =>
+            // Use animation Completed event instead of DispatcherTimer
+            animation.Completed += (s, e) =>
             {
                 // Restore the standard transform group with flip and breathing
                 var transformGroup = new TransformGroup();
                 transformGroup.Children.Add(_flipTransform);
                 transformGroup.Children.Add(_breathingTransform);
                 PetSprite.RenderTransform = transformGroup;
-                timer.Stop();
             };
-            timer.Start();
+
+            rotateTransform.BeginAnimation(RotateTransform.AngleProperty, animation);
         }
 
         /// <summary>

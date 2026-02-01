@@ -65,14 +65,14 @@ namespace VSPets.Controls
             // Temporary pet to get available colors
             // Note: We create a dummy pet just to access GetPossibleColors()
             // Optimization: Could make GetPossibleColors static or use a helper service, but this works given current architecture
-            var dummyPet = PetManager.Instance.CreatePet(type, null);
+            IPet dummyPet = PetManager.Instance.CreatePet(type, null);
             if (dummyPet is BasePet basePet)
             {
-                var colors = basePet.GetPossibleColors();
+                PetColor[] colors = basePet.GetPossibleColors();
                 if (colors != null && colors.Length > 0)
                 {
                     PetColorComboBox.Items.Add("Random"); // Default option
-                    foreach (var color in colors)
+                    foreach (PetColor color in colors)
                     {
                         PetColorComboBox.Items.Add(color);
                     }
@@ -98,18 +98,18 @@ namespace VSPets.Controls
 
         private void UpdatePreview()
         {
-             // Create a pet with selected type and color
-             // If color is null (Random selected), CreatePet will handle randomization or default logic,
-             // BUT for preview "Random" might be confusing if it keeps changing. 
-             // Actually, for preview, if "Random" is selected, we might want to show *a* valid color, 
-             // or just let the manager pick one (which it does).
-             // However, to make the preview stable when "Random" is selected, we might want to pick the first available color 
-             // or cache the random choice. For simplicity, let's rely on Manager's creation logic.
-             // Wait, if "Random" is selected in dropdown (SelectedColor == null), CreatePet creates a pet with random color (e.g. Cat.CreateRandom uses random color).
-             // That is acceptable for "Random".
+            // Create a pet with selected type and color
+            // If color is null (Random selected), CreatePet will handle randomization or default logic,
+            // BUT for preview "Random" might be confusing if it keeps changing. 
+            // Actually, for preview, if "Random" is selected, we might want to show *a* valid color, 
+            // or just let the manager pick one (which it does).
+            // However, to make the preview stable when "Random" is selected, we might want to pick the first available color 
+            // or cache the random choice. For simplicity, let's rely on Manager's creation logic.
+            // Wait, if "Random" is selected in dropdown (SelectedColor == null), CreatePet creates a pet with random color (e.g. Cat.CreateRandom uses random color).
+            // That is acceptable for "Random".
 
-             // If a specific color is selected, pass it.
-             var pet = PetManager.Instance.CreatePet(SelectedPetType, SelectedColor);
+            // If a specific color is selected, pass it.
+            IPet pet = PetManager.Instance.CreatePet(SelectedPetType, SelectedColor);
 
              if (pet != null)
              {

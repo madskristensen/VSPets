@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio;
 using VSPets.Options;
 using VSPets.Pets;
 using VSPets.Services;
@@ -18,8 +19,7 @@ namespace VSPets
     [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(PackageGuids.VSPetsString)]
-    [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideAutoLoad(Microsoft.VisualStudio.Shell.Interop.UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), Vsix.Name, "General", 0, 0, true, SupportsProfiles = true)]
     public sealed class VSPetsPackage : ToolkitPackage
     {
@@ -34,9 +34,6 @@ namespace VSPets
 
             // Initialize the pet manager after VS is fully loaded
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            // Delay initialization slightly to ensure VS UI is ready
-            await Task.Delay(2000, cancellationToken);
 
             try
             {
