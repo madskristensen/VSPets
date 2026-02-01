@@ -118,6 +118,7 @@ Your pets aren't just decorations—they have personality!
 |----------|--------------|
 | 🚶 Walking | Pets stroll across the status bar |
 | 🏃 Running | Sometimes they get energetic! |
+| ⚾ Chasing | Double-click to throw a ball - pets chase it! |
 | 💤 Sleeping | Pets take naps with Zzz bubbles |
 | 🥱 Yawning | Random idle behavior |
 | 😌 Stretching | Pets stay limber |
@@ -129,6 +130,7 @@ Your pets aren't just decorations—they have personality!
 
 ## 💡 Tips
 
+- **Double-click a pet** to throw a ball and watch them chase it!
 - **Drag pets** to reposition them along the status bar
 - **Pets remember their names** across Visual Studio sessions
 - **White pets have outlines** so they're visible on light themes
@@ -150,7 +152,7 @@ Want to add a new pet type? Pull requests are welcome!
 
 This extension was inspired by [VS Code Pets](https://tonybaloney.github.io/vscode-pets/) by [Anthony Shaw (tonybaloney)](https://github.com/tonybaloney). VS Code Pets is a fantastic extension that brings pets to VS Code's explorer panel with throwable balls and themed backgrounds.
 
-VS Pets takes a different approach—pets walk along the Visual Studio status bar and react to your builds. While VS Code Pets has more pet types and interactive features like ball throwing, VS Pets focuses on build awareness and a non-intrusive status bar experience.
+VS Pets takes a different approach—pets walk along the Visual Studio status bar and react to your builds. Double-click any pet to throw a ball and watch them chase it!
 
 Check out [VS Code Pets](https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets) if you're a VS Code user!
 

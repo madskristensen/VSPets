@@ -8,6 +8,7 @@ using VSPets.Animation;
 using VSPets.Controls;
 using VSPets.Models;
 using VSPets.Pets;
+using Image = System.Windows.Controls.Image;
 
 namespace VSPets.Services
 {
@@ -29,6 +30,15 @@ namespace VSPets.Services
         private bool _isFirstSpawn = true; // Track if this is the first spawn
         private DateTime _lastSpawnTime = DateTime.MinValue;
         private const double _minSpawnDelaySeconds = 2.0; // Minimum time between spawns from same side
+
+        // Ball management
+        private Ball _activeBall;
+        private Image _ballImage;
+        private int _ballFrame;
+        private double _ballFrameTime;
+        private const double _ballFrameDuration = 0.1; // 10 FPS for ball animation
+        private const double _chaseSpeed = 180; // Pixels per second when chasing
+        private const double _catchDistance = 20; // Distance at which pet catches ball
 
         private PetHostCanvas _hostCanvas;
         private DispatcherTimer _updateTimer;
@@ -415,6 +425,9 @@ namespace VSPets.Services
             var deltaTime = _updateTimer.Interval.TotalSeconds;
             var canvasWidth = _hostCanvas?.ActualWidth ?? VSPets.StatusBarInjector.StatusBarWidth;
 
+            // Update ball physics
+            UpdateBall(deltaTime, canvasWidth);
+
             List<IPet> petsToUpdate;
             _petLock.EnterReadLock();
             try
@@ -430,7 +443,15 @@ namespace VSPets.Services
             {
                 try
                 {
-                    pet.Update(deltaTime, canvasWidth);
+                    // Handle chasing behavior
+                    if (pet is BasePet basePet && basePet.State == PetState.Chasing && _activeBall != null)
+                    {
+                        UpdateChasingPet(basePet, deltaTime);
+                    }
+                    else
+                    {
+                        pet.Update(deltaTime, canvasWidth);
+                    }
 
                     // Update control position and breathing animation
                     if (_petControls.TryGetValue(pet.Id, out PetControl control))
@@ -449,6 +470,210 @@ namespace VSPets.Services
 
             // Check for pet interactions (when pets are close to each other)
             CheckPetInteractions(petsToUpdate);
+        }
+
+        private void UpdateBall(double deltaTime, double canvasWidth)
+        {
+            if (_activeBall == null || !_activeBall.IsActive)
+            {
+                return;
+            }
+
+            // Update ball physics
+            _activeBall.Update(deltaTime, canvasWidth);
+
+            // Update ball animation frame
+            _ballFrameTime += deltaTime;
+            if (_ballFrameTime >= _ballFrameDuration)
+            {
+                _ballFrameTime = 0;
+                _ballFrame = (_ballFrame + 1) % 4;
+            }
+
+            // Update ball image
+            if (_ballImage != null)
+            {
+                Canvas.SetLeft(_ballImage, _activeBall.X);
+                _ballImage.Source = ProceduralSpriteRenderer.Instance.RenderBall(_activeBall.Size, _ballFrame);
+            }
+
+            // Check if chasing pet caught the ball
+            if (_activeBall.ChasingPetId.HasValue)
+            {
+                _petLock.EnterReadLock();
+                try
+                {
+                    if (_pets.FirstOrDefault(p => p.Id == _activeBall.ChasingPetId.Value) is BasePet chasingPet)
+                    {
+                        var distance = Math.Abs(chasingPet.X + (int)chasingPet.Size / 2 - _activeBall.X);
+                        if (distance < _catchDistance)
+                        {
+                            OnBallCaught(chasingPet);
+                        }
+                    }
+                }
+                finally
+                {
+                    _petLock.ExitReadLock();
+                }
+            }
+        }
+
+        private void UpdateChasingPet(BasePet pet, double deltaTime)
+        {
+            if (_activeBall == null)
+            {
+                // Ball gone, return to normal behavior
+                pet.ForceState(PetState.Idle);
+                return;
+            }
+
+            // Move toward ball
+            var petCenterX = pet.X + (int)pet.Size / 2;
+            var ballCenterX = _activeBall.X + _activeBall.Size / 2;
+            var direction = ballCenterX > petCenterX ? 1 : -1;
+
+            pet.X += direction * _chaseSpeed * deltaTime;
+            pet.Direction = direction > 0 ? PetDirection.Right : PetDirection.Left;
+
+            // Update animation
+            pet.UpdateAnimation(deltaTime);
+        }
+
+        private void OnBallCaught(BasePet catcher)
+        {
+            // Pet caught the ball!
+            _activeBall.Catch();
+            catcher.ForceState(PetState.Happy);
+            catcher.ShowSpeech("🎉", 2000);
+
+            // Remove ball image
+            if (_ballImage != null && _hostCanvas != null)
+            {
+                _hostCanvas.Children.Remove(_ballImage);
+                _ballImage = null;
+            }
+
+            _activeBall = null;
+
+            new InvalidOperationException($"VSPets: {catcher.Name} caught the ball!").Log();
+        }
+
+        /// <summary>
+        /// Throws a ball from the specified position.
+        /// </summary>
+        /// <param name="fromX">X position to throw from.</param>
+        /// <param name="throwerId">ID of the pet that threw the ball (for exclusion delay).</param>
+        public async Task ThrowBallAsync(double fromX, Guid throwerId)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Remove existing ball if any
+            if (_ballImage != null && _hostCanvas != null)
+            {
+                _hostCanvas.Children.Remove(_ballImage);
+                _ballImage = null;
+            }
+
+            // Create new ball
+            _activeBall = new Ball(fromX);
+            _ballFrame = 0;
+            _ballFrameTime = 0;
+
+            // Create ball image
+            _ballImage = new Image
+            {
+                Width = _activeBall.Size,
+                Height = _activeBall.Size,
+                Source = ProceduralSpriteRenderer.Instance.RenderBall(_activeBall.Size, 0)
+            };
+
+            // Position ball (at bottom of status bar)
+            Canvas.SetLeft(_ballImage, _activeBall.X);
+            Canvas.SetBottom(_ballImage, 4); // Slightly above the very bottom
+            Panel.SetZIndex(_ballImage, 50); // Below pets but visible
+
+            // Add to canvas
+            _hostCanvas?.Children.Add(_ballImage);
+
+            // Small delay before pet starts chasing (looks like a "throw")
+            await Task.Delay(250);
+
+            // Find nearest pet to chase (can be the thrower if it's the only pet)
+            AssignChasingPet(throwerId);
+        }
+
+        private void AssignChasingPet(Guid throwerId)
+        {
+            if (_activeBall == null)
+            {
+                return;
+            }
+
+            _petLock.EnterReadLock();
+            try
+            {
+                // Collect eligible pets (not sleeping, not dragging)
+                var eligiblePets = new List<(BasePet pet, double distance)>();
+
+                foreach (IPet pet in _pets)
+                {
+                    if (pet is not BasePet basePet)
+                    {
+                        continue;
+                    }
+
+                    // Skip pets that are busy (sleeping, dragging, etc.)
+                    if (basePet.State == PetState.Sleeping || basePet.State == PetState.Dragging)
+                    {
+                        continue;
+                    }
+
+                    var distance = Math.Abs(basePet.X - _activeBall.X);
+                    eligiblePets.Add((basePet, distance));
+                }
+
+                if (eligiblePets.Count == 0)
+                {
+                    return;
+                }
+
+                BasePet chasingPet;
+
+                if (eligiblePets.Count == 1)
+                {
+                    // Only one pet - it chases (solo fetch)
+                    chasingPet = eligiblePets[0].pet;
+                }
+                else
+                {
+                    // Multiple pets - prefer a pet OTHER than the thrower
+                    // Find nearest non-thrower
+                    var nonThrowers = eligiblePets
+                        .Where(p => p.pet.Id != throwerId)
+                        .OrderBy(p => p.distance)
+                        .ToList();
+
+                    if (nonThrowers.Count > 0)
+                    {
+                        // Another pet chases
+                        chasingPet = nonThrowers[0].pet;
+                    }
+                    else
+                    {
+                        // All eligible pets are the thrower (shouldn't happen, but fallback)
+                        chasingPet = eligiblePets.OrderBy(p => p.distance).First().pet;
+                    }
+                }
+
+                _activeBall.ChasingPetId = chasingPet.Id;
+                chasingPet.ForceState(PetState.Chasing);
+                new InvalidOperationException($"VSPets: {chasingPet.Name} is chasing the ball!").Log();
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
+            }
         }
 
         private double _lastInteractionTime;

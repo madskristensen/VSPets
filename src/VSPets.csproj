@@ -57,6 +57,7 @@
     <Compile Include="Controls\PetSelectionDialog.xaml.cs">
       <DependentUpon>PetSelectionDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\Ball.cs" />
     <Compile Include="Models\PetEnums.cs" />
     <Compile Include="Models\PetState.cs" />
     <Compile Include="Options\General.cs" />

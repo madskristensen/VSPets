@@ -56,6 +56,7 @@ namespace VSPets.Animation
                 PetState.Exiting => 4,    // Walk cycle (leaving)
                 PetState.Entering => 4,   // Walk cycle (entering)
                 PetState.Dragging => 2,   // Subtle "held" animation
+                PetState.Chasing => 4,    // Fast run cycle (chasing ball)
                 _ => 1
             };
         }
@@ -75,6 +76,7 @@ namespace VSPets.Animation
                 PetState.Exiting => 0.15,  // Normal walk (exiting)
                 PetState.Entering => 0.15, // Normal walk (entering)
                 PetState.Dragging => 0.3,  // Slow wiggle while held
+                PetState.Chasing => 0.06,  // Very fast run (excited chase)
                 _ => 0.3
             };
         }
@@ -1523,7 +1525,7 @@ namespace VSPets.Animation
             var bodyY = 16 * scale + bodyBob * scale;
 
             // Striped tail
-            for (int i = 0; i < 5; i++)
+            for (var i = 0; i < 5; i++)
             {
                 Brush stripeBrush = i % 2 == 0 ? baseBrush : darkBrush;
                 dc.DrawEllipse(stripeBrush, null,
@@ -1723,15 +1725,15 @@ namespace VSPets.Animation
                 0.8 * scale, 0.8 * scale);
 
             // Teeth (jagged)
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
-                dc.DrawEllipse(teethBrush, null, 
-                    new Point((headX + 5 + i * 1.5) * scale, headY + 4 * scale), 
+                dc.DrawEllipse(teethBrush, null,
+                    new Point((headX + 5 + i * 1.5) * scale, headY + 4 * scale),
                     0.6 * scale, 1 * scale);
             }
 
             // Spiky back ridges
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 DrawTriangle(dc, baseBrush,
                     new Point((10 + i * 4) * scale, bodyY - 4 * scale),
@@ -1756,13 +1758,13 @@ namespace VSPets.Animation
             else
             {
                 // Fierce eye with slit pupil
-                dc.DrawEllipse(CreateBrush(Color.FromRgb(255, 200, 50)), null, 
+                dc.DrawEllipse(CreateBrush(Color.FromRgb(255, 200, 50)), null,
                     new Point(headX + 2 * scale, headY - 0.5 * scale), 2 * scale, 1.8 * scale);
-                dc.DrawEllipse(eyeBrush, null, 
+                dc.DrawEllipse(eyeBrush, null,
                     new Point(headX + 2.3 * scale, headY - 0.5 * scale), 0.8 * scale, 1.5 * scale);
-                dc.DrawEllipse(whiteBrush, null, 
+                dc.DrawEllipse(whiteBrush, null,
                     new Point(headX + 1.3 * scale, headY - 1.3 * scale), 0.5 * scale, 0.5 * scale);
-                
+
                 // Angry eyebrow ridge
                 var browPen = new Pen(CreateBrush(Color.FromRgb(
                     (byte)Math.Max(0, baseColor.R - 40),
@@ -1961,6 +1963,7 @@ namespace VSPets.Animation
                     );
 
                 case PetState.Running:
+                case PetState.Chasing:
                     // Faster, more exaggerated
                     var runPhase = (frame % 4) * (Math.PI / 2);
                     return (
@@ -1996,6 +1999,95 @@ namespace VSPets.Animation
             }
             geometry.Freeze();
             dc.DrawGeometry(brush, null, geometry);
+        }
+
+        #endregion
+
+        #region Ball Rendering
+
+        /// <summary>
+        /// Renders a ball sprite.
+        /// </summary>
+        /// <param name="size">Size of the ball in pixels.</param>
+        /// <param name="frame">Animation frame (0-3 for rolling).</param>
+        /// <returns>A frozen BitmapSource of the ball.</returns>
+        public BitmapSource RenderBall(int size, int frame)
+        {
+            var key = $"ball_{size}_{frame}";
+
+            lock (_cacheLock)
+            {
+                if (_frameCache.TryGetValue(key, out BitmapSource cached))
+                {
+                    _accessOrder[key] = ++_accessCounter;
+                    return cached;
+                }
+            }
+
+            var dpi = 96.0;
+            var renderTarget = new RenderTargetBitmap(size, size, dpi, dpi, PixelFormats.Pbgra32);
+
+            var drawingVisual = new DrawingVisual();
+            using (DrawingContext dc = drawingVisual.RenderOpen())
+            {
+                DrawBall(dc, size, frame);
+            }
+
+            renderTarget.Render(drawingVisual);
+            renderTarget.Freeze();
+
+            lock (_cacheLock)
+            {
+                if (!_frameCache.ContainsKey(key))
+                {
+                    _frameCache[key] = renderTarget;
+                    _accessOrder[key] = ++_accessCounter;
+                }
+            }
+
+            return renderTarget;
+        }
+
+        private void DrawBall(DrawingContext dc, int size, int frame)
+        {
+            var scale = size / 16.0;
+            var center = new Point(8 * scale, 8 * scale);
+            var radius = 6 * scale;
+
+            // Ball colors - red with white highlight
+            Brush ballBrush = CreateBrush(Color.FromRgb(220, 60, 60));
+            Brush highlightBrush = CreateBrush(Color.FromRgb(255, 200, 200));
+            Brush darkBrush = CreateBrush(Color.FromRgb(180, 40, 40));
+            var outlinePen = new Pen(CreateBrush(Color.FromRgb(150, 30, 30)), 0.5 * scale);
+            outlinePen.Freeze();
+
+            // Main ball
+            dc.DrawEllipse(ballBrush, outlinePen, center, radius, radius);
+
+            // Rotating stripe pattern based on frame
+            var stripeAngle = frame * Math.PI / 2; // 90 degrees per frame
+            var stripeOffset = Math.Sin(stripeAngle) * 2 * scale;
+
+            // Vertical stripe (simulates rotation)
+            var stripeGeo = new StreamGeometry();
+            using (StreamGeometryContext ctx = stripeGeo.Open())
+            {
+                ctx.BeginFigure(new Point(center.X + stripeOffset - 1.5 * scale, center.Y - radius + 1 * scale), true, true);
+                ctx.LineTo(new Point(center.X + stripeOffset + 1.5 * scale, center.Y - radius + 1 * scale), true, false);
+                ctx.LineTo(new Point(center.X + stripeOffset + 1.5 * scale, center.Y + radius - 1 * scale), true, false);
+                ctx.LineTo(new Point(center.X + stripeOffset - 1.5 * scale, center.Y + radius - 1 * scale), true, false);
+            }
+            stripeGeo.Freeze();
+
+            // Clip stripe to ball shape
+            dc.PushClip(new EllipseGeometry(center, radius - 0.5 * scale, radius - 0.5 * scale));
+            dc.DrawGeometry(darkBrush, null, stripeGeo);
+            dc.Pop();
+
+            // Highlight (top-left shine)
+            dc.DrawEllipse(highlightBrush, null,
+                new Point(center.X - 2 * scale, center.Y - 2 * scale),
+                2 * scale, 1.5 * scale);
         }
 
         #endregion

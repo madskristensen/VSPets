@@ -76,8 +76,59 @@ namespace VSPets.Pets
         public PetSpeed SpeedSetting { get; set; } = PetSpeed.Normal;
 
         public PetState CurrentState => _currentState;
-        public PetDirection Direction => _direction;
-        public double X => _x;
+
+        /// <summary>
+        /// Gets the current state (alias for CurrentState for convenience).
+        /// </summary>
+        public PetState State => _currentState;
+
+        /// <summary>
+        /// Gets or sets the pet's current direction.
+        /// Setting this also updates the sprite direction.
+        /// </summary>
+        public PetDirection Direction
+        {
+            get => _direction;
+            set
+            {
+                if (_direction != value)
+                {
+                    PetDirection old = _direction;
+                    _direction = value;
+                    UpdateSpriteDirection();
+                    DirectionChanged?.Invoke(this, new PetDirectionChangedEventArgs
+                    {
+                        OldDirection = old,
+                        NewDirection = value
+                    });
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the pet's X position.
+        /// </summary>
+        public double X
+        {
+            get => _x;
+            set
+            {
+                if (Math.Abs(_x - value) > 0.001)
+                {
+                    var oldX = _x;
+                    _x = value;
+                    PositionChanged?.Invoke(this, new PetPositionChangedEventArgs
+                    {
+                        OldX = oldX,
+                        OldY = _y,
+                        NewX = _x,
+                        NewY = _y
+                    });
+                    UpdateControlPosition();
+                }
+            }
+        }
+
         public double Y => _y;
         public FrameworkElement Control => _container;
 
@@ -641,7 +692,7 @@ namespace VSPets.Pets
             };
 
             // Apply per-pet time variation (except for special states)
-            if (state != PetState.Exiting && state != PetState.Entering && state != PetState.Happy && state != PetState.Dragging)
+            if (state != PetState.Exiting && state != PetState.Entering && state != PetState.Happy && state != PetState.Dragging && state != PetState.Chasing)
             {
                 baseDuration *= _stateTimeVariation;
             }
@@ -652,6 +703,24 @@ namespace VSPets.Pets
         private double RandomRange(double min, double max)
         {
             return min + _random.NextDouble() * (max - min);
+        }
+
+        /// <summary>
+        /// Forces the pet into a specific state, bypassing normal transition logic.
+        /// Used for special behaviors like chasing a ball.
+        /// </summary>
+        public void ForceState(PetState state)
+        {
+            SetState(state);
+        }
+
+        /// <summary>
+        /// Updates just the animation frame without full state update.
+        /// Used when external code controls movement (like ball chasing).
+        /// </summary>
+        public void UpdateAnimation(double deltaTime)
+        {
+            UpdateFrameAnimation(deltaTime);
         }
 
         public void TriggerHappy()

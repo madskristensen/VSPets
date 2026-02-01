@@ -151,7 +151,7 @@ namespace VSPets.Pets
     /// <summary>
     /// Turtle pet - slow and steady wins the race!
     /// </summary>
-    public class Turtle : BasePet
+    public class Turtle(PetColor color = PetColor.Green, string name = null) : BasePet(color, name)
     {
         private static readonly string[] _turtleNames =
         [
@@ -161,11 +161,6 @@ namespace VSPets.Pets
         ];
 
         private static readonly Random _nameRandom = new();
-
-        public Turtle(PetColor color = PetColor.Green, string name = null)
-            : base(color, name)
-        {
-        }
 
         public override PetType PetType => PetType.Turtle;
 
@@ -209,7 +204,7 @@ namespace VSPets.Pets
     /// <summary>
     /// Bunny pet - hopping around the status bar!
     /// </summary>
-    public class Bunny : BasePet
+    public class Bunny(PetColor color = PetColor.White, string name = null) : BasePet(color, name)
     {
         private static readonly string[] _bunnyNames =
         [
@@ -219,11 +214,6 @@ namespace VSPets.Pets
         ];
 
         private static readonly Random _nameRandom = new();
-
-        public Bunny(PetColor color = PetColor.White, string name = null)
-            : base(color, name)
-        {
-        }
 
         public override PetType PetType => PetType.Bunny;
 
@@ -267,7 +257,7 @@ namespace VSPets.Pets
     /// <summary>
     /// Raccoon pet - mischievous little trash panda!
     /// </summary>
-    public class Raccoon : BasePet
+    public class Raccoon(PetColor color = PetColor.Gray, string name = null) : BasePet(color, name)
     {
         private static readonly string[] _raccoonNames =
         [
@@ -277,11 +267,6 @@ namespace VSPets.Pets
         ];
 
         private static readonly Random _nameRandom = new();
-
-        public Raccoon(PetColor color = PetColor.Gray, string name = null)
-            : base(color, name)
-        {
-        }
 
         public override PetType PetType => PetType.Raccoon;
 
@@ -316,7 +301,7 @@ namespace VSPets.Pets
     /// <summary>
     /// Wolf pet - majestic and loyal!
     /// </summary>
-    public class Wolf : BasePet
+    public class Wolf(PetColor color = PetColor.Gray, string name = null) : BasePet(color, name)
     {
         private static readonly string[] _wolfNames =
         [
@@ -326,11 +311,6 @@ namespace VSPets.Pets
         ];
 
         private static readonly Random _nameRandom = new();
-
-        public Wolf(PetColor color = PetColor.Gray, string name = null)
-            : base(color, name)
-        {
-        }
 
         public override PetType PetType => PetType.Wolf;
 
@@ -371,7 +351,7 @@ namespace VSPets.Pets
     /// <summary>
     /// T-Rex pet - tiny arms, big personality!
     /// </summary>
-    public class TRex : BasePet
+    public class TRex(PetColor color = PetColor.Green, string name = null) : BasePet(color, name)
     {
         private static readonly string[] _trexNames =
         [
@@ -381,11 +361,6 @@ namespace VSPets.Pets
         ];
 
         private static readonly Random _nameRandom = new();
-
-        public TRex(PetColor color = PetColor.Green, string name = null)
-            : base(color, name)
-        {
-        }
 
         public override PetType PetType => PetType.TRex;
 

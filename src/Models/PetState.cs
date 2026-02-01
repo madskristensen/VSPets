@@ -43,7 +43,12 @@ namespace VSPets.Models
         /// <summary>
         /// Pet is being dragged by the user.
         /// </summary>
-        Dragging
+        Dragging,
+
+        /// <summary>
+        /// Pet is chasing a ball.
+        /// </summary>
+        Chasing
     }
 
     /// <summary>

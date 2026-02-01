@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using VSPets.Animation;
 using VSPets.Models;
 using VSPets.Pets;
+using VSPets.Services;
 
 namespace VSPets.Controls
 {
@@ -91,6 +92,7 @@ namespace VSPets.Controls
             MouseEnter += OnMouseEnter;
             MouseLeave += OnMouseLeave;
             MouseRightButtonUp += OnRightClick;
+            MouseDoubleClick += OnDoubleClick;
 
             // Set up drag handlers
             MouseLeftButtonDown += OnMouseLeftButtonDown;
@@ -518,6 +520,21 @@ namespace VSPets.Controls
             // Context menu will show automatically
             // Show a greeting while menu is open
             ShowSpeechBubble(_pet?.HelloMessage ?? "Hello!", 2000);
+        }
+
+        private void OnDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_pet == null) return;
+
+            // Throw a ball!
+            var petX = Canvas.GetLeft(this);
+            var petCenterX = petX + ActualWidth / 2;
+
+            // Fire and forget - the ball throwing is handled asynchronously
+            _ = Services.PetManager.Instance.ThrowBallAsync(petCenterX, _pet.Id);
+
+            // Show excited reaction
+            ShowSpeechBubble("⚾", 1000);
         }
 
         private void OnRenameClick(object sender, RoutedEventArgs e)
