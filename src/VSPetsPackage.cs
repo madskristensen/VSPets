@@ -39,7 +39,6 @@ namespace VSPets
             {
                 // Load settings
                 General settings = await General.GetLiveInstanceAsync();
-                PetManager.Instance.MaxPets = Math.Max(1, Math.Min(settings.MaxPets, 10));
 
                 await PetManager.Instance.InitializeAsync();
 

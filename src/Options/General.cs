@@ -18,12 +18,6 @@ namespace VSPets.Options
     public class General : BaseOptionModel<General>, IRatingConfig
     {
         [Category("Pets")]
-        [DisplayName("Maximum Pets")]
-        [Description("Maximum number of pets allowed at once (1-10)")]
-        [DefaultValue(5)]
-        public int MaxPets { get; set; } = 5;
-
-        [Category("Pets")]
         [DisplayName("Auto-spawn Pet on Startup")]
         [Description("Automatically add a random pet when Visual Studio starts")]
         [DefaultValue(true)]

@@ -71,11 +71,6 @@ namespace VSPets.Services
         public event EventHandler<PetEventArgs> PetRemoved;
 
         /// <summary>
-        /// Maximum number of pets allowed.
-        /// </summary>
-        public int MaxPets { get; set; } = 5;
-
-        /// <summary>
         /// Gets the current pet count.
         /// </summary>
         public int PetCount
@@ -159,11 +154,6 @@ namespace VSPets.Services
             if (!_isInitialized)
             {
                 await InitializeAsync();
-            }
-
-            if (PetCount >= MaxPets)
-            {
-                return null;
             }
 
             // Create the pet
@@ -470,6 +460,60 @@ namespace VSPets.Services
 
             // Check for pet interactions (when pets are close to each other)
             CheckPetInteractions(petsToUpdate);
+
+            // Random ball throw (rare)
+            CheckRandomBallThrow(petsToUpdate, deltaTime);
+        }
+
+        // Random ball throw timing
+        private double _timeSinceLastBallThrow;
+        private const double MinTimeBetweenRandomThrows = 30.0;  // At least 30 seconds between random throws
+        private const double RandomThrowChancePerSecond = 0.005; // 0.5% chance per second (very rare)
+
+        private void CheckRandomBallThrow(List<IPet> pets, double deltaTime)
+        {
+            // Don't throw if ball is already active
+            if (_activeBall != null && _activeBall.IsActive)
+            {
+                return;
+            }
+
+            // Don't throw if no pets or any pet is already chasing
+            if (pets.Count == 0 || pets.Any(p => p is BasePet bp && bp.State == PetState.Chasing))
+            {
+                return;
+            }
+
+            _timeSinceLastBallThrow += deltaTime;
+
+            // Enforce minimum time between throws
+            if (_timeSinceLastBallThrow < MinTimeBetweenRandomThrows)
+            {
+                return;
+            }
+
+            // Random chance to throw
+            if (_random.NextDouble() < RandomThrowChancePerSecond * deltaTime)
+            {
+                // Pick a random pet to "throw" the ball
+                var eligiblePets = pets
+                    .OfType<BasePet>()
+                    .Where(p => p.State != PetState.Sleeping && p.State != PetState.Dragging)
+                    .ToList();
+
+                if (eligiblePets.Count > 0)
+                {
+                    var thrower = eligiblePets[_random.Next(eligiblePets.Count)];
+                    var throwX = thrower.X + (int)thrower.Size / 2;
+
+                    // Fire and forget the ball throw
+                    _ = ThrowBallAsync(throwX, thrower.Id);
+                    _timeSinceLastBallThrow = 0;
+
+                    // Show the thrower being playful
+                    thrower.ShowSpeech("⚾", 1000);
+                }
+            }
         }
 
         private void UpdateBall(double deltaTime, double canvasWidth)

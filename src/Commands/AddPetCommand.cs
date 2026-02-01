@@ -29,10 +29,6 @@ namespace VSPets.Commands
                     {
                         await VS.StatusBar.ShowMessageAsync($"🐾 {pet.Name} the {pet.PetType} joined your IDE!");
                     }
-                    else
-                    {
-                        await VS.StatusBar.ShowMessageAsync($"🐾 Maximum pets reached ({PetManager.Instance.MaxPets})");
-                    }
                 }
             }
             catch (Exception ex)

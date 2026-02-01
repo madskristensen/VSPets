@@ -49,7 +49,7 @@ Choose from a variety of pets:
 - 🐻 **Bears** - Brown grizzly, black bear, and white polar bear
 - 🦎 **Axolotls** - Pink, blue, gold, white, and black
 - 🐢 **Turtles** - Green, brown, and gray - slow and steady!
-- 🐰 **Bunnies** - White, brown, gray, and more - they hop!
+- 🐰 **Bunnies** - White, brown, gray, and more - fluffy tails!
 - 🦝 **Raccoons** - Gray and dark gray trash pandas with masks
 - 🦖 **T-Rex** - Green, brown, purple, red - tiny arms, big personality!
 - 📎 **Clippy** - The legendary Office assistant returns!
@@ -70,7 +70,6 @@ Right-click any pet to:
 
 Access settings via **Tools > Options > VS Pets**:
 
-- Maximum number of pets
 - Auto-spawn on startup
 - Pet speed (Lazy → Hyper)
 - Idle animations toggle
