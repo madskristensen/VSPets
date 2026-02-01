@@ -77,7 +77,7 @@ namespace VSPets
                                 await Task.Delay(spawnDelay, cancellationToken);
                             }
                         }
-                        System.Diagnostics.Debug.WriteLine($"VSPets: Restored {savedPets.Count} pets");
+                        await new InvalidOperationException($"VSPets: Restored {savedPets.Count} pets").LogAsync();
                     }
                     else if (settings.AutoSpawnOnStartup && PetManager.Instance.PetCount == 0)
                     {
@@ -159,9 +159,9 @@ namespace VSPets
                             {
                                 JoinableTaskFactory.Run(() => PetPersistenceService.SavePetsAsync(petDataList));
                             }
-                            catch (OperationCanceledException)
+                            catch (OperationCanceledException ex)
                             {
-                                System.Diagnostics.Debug.WriteLine("VSPets: Save timed out during shutdown");
+                                new TimeoutException("VSPets: Save timed out during shutdown.", ex).Log();
                             }
                         }
                     }

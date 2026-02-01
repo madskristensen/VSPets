@@ -1,6 +1,5 @@
 using System.Windows.Interop;
 using VSPets.Controls;
-using VSPets.Models;
 using VSPets.Pets;
 using VSPets.Services;
 
@@ -17,8 +16,10 @@ namespace VSPets.Commands
 
                 var dialog = new PetSelectionDialog();
                 // Ensure dialog is modal to VS
-                var window = new System.Windows.Interop.WindowInteropHelper(dialog);
-                window.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                var window = new WindowInteropHelper(dialog)
+                {
+                    Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
+                };
 
                 if (dialog.ShowDialog() == true)
                 {
@@ -36,7 +37,7 @@ namespace VSPets.Commands
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: AddPet failed: {ex.Message}");
+                await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync("🐾 Failed to add pet");
             }
         }

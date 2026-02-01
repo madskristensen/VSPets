@@ -609,8 +609,10 @@ namespace VSPets.Controls
             {
                 var dialog = new PetSelectionDialog();
                 // Ensure dialog is modal to VS
-                var window = new System.Windows.Interop.WindowInteropHelper(dialog);
-                window.Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle;
+                var window = new System.Windows.Interop.WindowInteropHelper(dialog)
+                {
+                    Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
+                };
 
                 if (dialog.ShowDialog() == true)
                 {
@@ -619,15 +621,14 @@ namespace VSPets.Controls
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: AddPet from context menu failed: {ex.Message}");
+                await ex.LogAsync();
             }
         }
 
         private void OnSettingsClick(object sender, RoutedEventArgs e)
         {
             // Open the VS Pets options page in Tools > Options
-            Community.VisualStudio.Toolkit.VS.Settings.OpenAsync<Options.OptionsProvider.GeneralOptions>()
-                .FileAndForget(nameof(OnSettingsClick));
+            VS.Settings.OpenAsync<Options.OptionsProvider.GeneralOptions>().FireAndForget();
         }
 
         /// <summary>

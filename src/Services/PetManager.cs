@@ -103,7 +103,6 @@ namespace VSPets.Services
 
             if (!injected)
             {
-                System.Diagnostics.Debug.WriteLine("VSPets: Failed to inject into status bar");
                 return;
             }
 
@@ -116,8 +115,6 @@ namespace VSPets.Services
             _updateTimer.Start();
 
             _isInitialized = true;
-
-            System.Diagnostics.Debug.WriteLine("VSPets: Initialized successfully");
         }
 
         /// <summary>
@@ -278,7 +275,7 @@ namespace VSPets.Services
 
             PetRemoved?.Invoke(this, new PetEventArgs { Pet = pet });
 
-            System.Diagnostics.Debug.WriteLine($"VSPets: Removed {pet.Name}");
+            await new InvalidOperationException($"VSPets: Removed {pet.Name}").LogAsync();
 
             return true;
         }
@@ -344,7 +341,7 @@ namespace VSPets.Services
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"VSPets: Notified {pets.Count} pets of build {(success ? "success" : "failure")}");
+            new InvalidOperationException($"VSPets: Notified {pets.Count} pets of build {(success ? "success" : "failure")}").Log();
         }
 
         public IPet CreatePet(PetType petType, PetColor? color)
@@ -395,7 +392,7 @@ namespace VSPets.Services
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"VSPets: Update error for {pet.Name}: {ex.Message}");
+                    ex.Log();
                 }
             }
 
@@ -455,7 +452,7 @@ namespace VSPets.Services
                 basePet2.ShowSpeech(greeting, 2000);
             }
 
-            System.Diagnostics.Debug.WriteLine($"VSPets: {pet1.Name} met {pet2.Name}!");
+            new InvalidOperationException($"VSPets: {pet1.Name} met {pet2.Name}!").Log();
         }
 
         /// <summary>

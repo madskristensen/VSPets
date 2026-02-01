@@ -61,13 +61,12 @@ namespace VSPets.Services
                     var json = await reader.ReadToEndAsync();
                     List<PetData> pets = JsonConvert.DeserializeObject<List<PetData>>(json);
 
-                    await new InvalidOperationException($"VSPets: Loaded {pets?.Count ?? 0} pets from disk").LogAsync();
                     return pets ?? [];
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: Failed to load pets: {ex.Message}");
+                await ex.LogAsync();
                 return [];
             }
         }
@@ -86,7 +85,7 @@ namespace VSPets.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: Failed to clear pets: {ex.Message}");
+                ex.Log();
             }
         }
     }

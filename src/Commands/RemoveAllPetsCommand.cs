@@ -22,7 +22,7 @@ namespace VSPets.Commands
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"VSPets: RemoveAllPets failed: {ex.Message}");
+                await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync("🐾 Failed to remove pets");
             }
         }
