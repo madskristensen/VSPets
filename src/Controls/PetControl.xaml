@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:emoji="clr-namespace:Emoji.Wpf;assembly=Emoji.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="48" d:DesignWidth="48"
              IsHitTestVisible="True">
@@ -56,12 +57,11 @@
                                   BlurRadius="6"/>
             </Border.Effect>
             
-            <TextBlock x:Name="SpeechText"
-                       FontSize="20"
-                       FontFamily="Segoe UI Emoji"
-                        Foreground="Black"
-                       TextAlignment="Center"
-                       Text="👋"/>
+            <emoji:TextBlock x:Name="SpeechText"
+                             FontSize="18"
+                             Foreground="Black"
+                             TextAlignment="Center"
+                             Text="👋"/>
         </Border>
         
         <!-- Name label (shown on hover) -->
@@ -73,11 +73,11 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 Margin="0,0,0,-18">
-            <TextBlock x:Name="NameText"
-                       FontSize="9"
-                       FontFamily="Segoe UI"
-                       Foreground="White"
-                       TextAlignment="Center"/>
+            <emoji:TextBlock x:Name="NameText"
+                             FontSize="9"
+                             FontFamily="Segoe UI"
+                             Foreground="White"
+                             TextAlignment="Center"/>
         </Border>
     </Grid>
 </UserControl>
