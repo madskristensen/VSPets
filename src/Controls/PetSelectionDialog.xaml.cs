@@ -22,8 +22,13 @@ namespace VSPets.Controls
         {
             InitializeComponent();
 
-            // Populate ComboBox with PetType enum values
-            foreach (PetType type in Enum.GetValues(typeof(PetType)))
+            // Populate ComboBox with PetType enum values (alphabetically sorted)
+            var petTypes = Enum.GetValues(typeof(PetType))
+                .Cast<PetType>()
+                .OrderBy(p => p.ToString())
+                .ToList();
+
+            foreach (PetType type in petTypes)
             {
                 PetTypeComboBox.Items.Add(type);
             }

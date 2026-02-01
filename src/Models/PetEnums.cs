@@ -11,7 +11,12 @@ namespace VSPets.Models
         Bear,
         Axolotl,
         Clippy,
-        RubberDuck
+        RubberDuck,
+        Turtle,
+        Bunny,
+        Raccoon,
+        TRex,
+        Wolf
     }
 
     /// <summary>
@@ -43,7 +48,12 @@ namespace VSPets.Models
 
         // Special
         Yellow,   // Rubber duck
-        Original  // For Clippy
+        Original, // For Clippy
+
+        // New pets
+        Green,    // Turtle, T-Rex
+        Purple,   // T-Rex, Bunny
+        DarkGray  // Raccoon, Wolf
     }
 
     /// <summary>

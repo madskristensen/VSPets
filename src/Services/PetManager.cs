@@ -396,6 +396,11 @@ namespace VSPets.Services
                 PetType.Axolotl => color.HasValue ? new Axolotl(color.Value) : Axolotl.CreateRandom(),
                 PetType.Clippy => new Clippy(),
                 PetType.RubberDuck => color.HasValue ? new RubberDuck(color.Value) : RubberDuck.CreateRandom(),
+                PetType.Turtle => color.HasValue ? new Turtle(color.Value) : Turtle.CreateRandom(),
+                PetType.Bunny => color.HasValue ? new Bunny(color.Value) : Bunny.CreateRandom(),
+                PetType.Raccoon => color.HasValue ? new Raccoon(color.Value) : Raccoon.CreateRandom(),
+                PetType.TRex => color.HasValue ? new TRex(color.Value) : TRex.CreateRandom(),
+                PetType.Wolf => color.HasValue ? new Wolf(color.Value) : Wolf.CreateRandom(),
                 _ => Cat.CreateRandom()
             };
         }

@@ -45,8 +45,13 @@ Choose from a variety of pets:
 - 🐱 **Cats** - Orange, black, white, gray, and brown
 - 🐕 **Dogs** - Various colors including Shiba Inu style
 - 🦊 **Foxes** - Classic orange and arctic white
+- 🐺 **Wolves** - Gray, white, and dark gray - majestic and loyal!
 - 🐻 **Bears** - Brown grizzly, black bear, and white polar bear
 - 🦎 **Axolotls** - Pink, blue, gold, white, and black
+- 🐢 **Turtles** - Green, brown, and gray - slow and steady!
+- 🐰 **Bunnies** - White, brown, gray, and more - they hop!
+- 🦝 **Raccoons** - Gray and dark gray trash pandas with masks
+- 🦖 **T-Rex** - Green, brown, purple, red - tiny arms, big personality!
 - 📎 **Clippy** - The legendary Office assistant returns!
 - 🦆 **Rubber Duck** - Multiple colors: yellow, white, black, blue, pink, gold, and orange
 
@@ -92,6 +97,13 @@ Access settings via **Tools > Options > VS Pets**:
 | Add Cat | Add a random cat to your status bar |
 | Add Dog | Add a random dog to your status bar |
 | Add Fox | Add a fox to your status bar |
+| Add Wolf | Add a wolf to your status bar |
+| Add Bear | Add a bear to your status bar |
+| Add Axolotl | Add an axolotl to your status bar |
+| Add Turtle | Add a turtle to your status bar |
+| Add Bunny | Add a bunny to your status bar |
+| Add Raccoon | Add a raccoon to your status bar |
+| Add T-Rex | Add a T-Rex to your status bar |
 | Add Clippy | Bring back the classic Office assistant |
 | Add Rubber Duck | Add a debugging companion |
 | Remove All Pets | Clear all pets from the status bar |
@@ -131,6 +143,16 @@ Your pets aren't just decorations—they have personality!
 Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/madskristensen/VSPets/issues).
 
 Want to add a new pet type? Pull requests are welcome!
+
+---
+
+## 🙏 Acknowledgements
+
+This extension was inspired by [VS Code Pets](https://tonybaloney.github.io/vscode-pets/) by [Anthony Shaw (tonybaloney)](https://github.com/tonybaloney). VS Code Pets is a fantastic extension that brings pets to VS Code's explorer panel with throwable balls and themed backgrounds.
+
+VS Pets takes a different approach—pets walk along the Visual Studio status bar and react to your builds. While VS Code Pets has more pet types and interactive features like ball throwing, VS Pets focuses on build awareness and a non-intrusive status bar experience.
+
+Check out [VS Code Pets](https://marketplace.visualstudio.com/items?itemName=tonybaloney.vscode-pets) if you're a VS Code user!
 
 ---
 
