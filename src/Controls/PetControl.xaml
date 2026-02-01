@@ -42,24 +42,24 @@
         <!-- Speech bubble (shown on hover or for messages) -->
         <Border x:Name="SpeechBubble"
                 Visibility="Collapsed"
-                Background="White"
-                BorderBrush="Black"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="6,3"
+                 Background="Transparent"
+                 BorderBrush="Transparent"
+                 BorderThickness="0"
+                 CornerRadius="0"
+                 Padding="0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 Margin="0,-30,0,0">
             <Border.Effect>
-                <DropShadowEffect ShadowDepth="2" 
-                                  Opacity="0.3" 
-                                  BlurRadius="4"/>
+                <DropShadowEffect ShadowDepth="1"
+                                  Opacity="0.6"
+                                  BlurRadius="6"/>
             </Border.Effect>
             
             <TextBlock x:Name="SpeechText"
-                       FontSize="15"
+                       FontSize="20"
                        FontFamily="Segoe UI Emoji"
-                       Foreground="Black"
+                        Foreground="Black"
                        TextAlignment="Center"
                        Text="👋"/>
         </Border>

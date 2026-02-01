@@ -432,13 +432,15 @@ namespace VSPets.Pets
                 {
                     // Exited right, enter from left
                     _x = -petSize;
-                    // Keep direction (walking right, entering from left)
+                    // Ensure sprite direction matches movement
+                    UpdateSpriteDirection();
                 }
                 else
                 {
                     // Exited left, enter from right
                     _x = canvasWidth + petSize;
-                    // Keep direction (walking left, entering from right)
+                    // Ensure sprite direction matches movement
+                    UpdateSpriteDirection();
                 }
             }
             else
