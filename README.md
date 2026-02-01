@@ -7,9 +7,6 @@
 
 Watch cats, dogs, foxes, and more stroll across the bottom of your IDE while you code. Your pets have unique personalities—they walk, run, sleep, and even react to your builds!
 
-<!-- TODO: Add hero screenshot/GIF showing pets walking on status bar -->
-<!-- ![VS Pets in action](art/hero.gif) -->
-
 Download from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.VSPets) or install from within Visual Studio via **Extensions > Manage Extensions**.
 
 ---

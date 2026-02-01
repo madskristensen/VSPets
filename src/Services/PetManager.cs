@@ -467,8 +467,8 @@ namespace VSPets.Services
 
         // Random ball throw timing
         private double _timeSinceLastBallThrow;
-        private const double MinTimeBetweenRandomThrows = 30.0;  // At least 30 seconds between random throws
-        private const double RandomThrowChancePerSecond = 0.005; // 0.5% chance per second (very rare)
+        private const double _minTimeBetweenRandomThrows = 30.0;  // At least 30 seconds between random throws
+        private const double _randomThrowChancePerSecond = 0.005; // 0.5% chance per second (very rare)
 
         private void CheckRandomBallThrow(List<IPet> pets, double deltaTime)
         {
@@ -487,13 +487,13 @@ namespace VSPets.Services
             _timeSinceLastBallThrow += deltaTime;
 
             // Enforce minimum time between throws
-            if (_timeSinceLastBallThrow < MinTimeBetweenRandomThrows)
+            if (_timeSinceLastBallThrow < _minTimeBetweenRandomThrows)
             {
                 return;
             }
 
             // Random chance to throw
-            if (_random.NextDouble() < RandomThrowChancePerSecond * deltaTime)
+            if (_random.NextDouble() < _randomThrowChancePerSecond * deltaTime)
             {
                 // Pick a random pet to "throw" the ball
                 var eligiblePets = pets
@@ -503,7 +503,7 @@ namespace VSPets.Services
 
                 if (eligiblePets.Count > 0)
                 {
-                    var thrower = eligiblePets[_random.Next(eligiblePets.Count)];
+                    BasePet thrower = eligiblePets[_random.Next(eligiblePets.Count)];
                     var throwX = thrower.X + (int)thrower.Size / 2;
 
                     // Fire and forget the ball throw
