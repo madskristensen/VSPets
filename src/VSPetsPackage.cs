@@ -73,7 +73,6 @@ namespace VSPets
                                 await Task.Delay(spawnDelay, cancellationToken);
                             }
                         }
-                        await new InvalidOperationException($"VSPets: Restored {savedPets.Count} pets").LogAsync();
                     }
                     else if (settings.AutoSpawnOnStartup && PetManager.Instance.PetCount == 0)
                     {

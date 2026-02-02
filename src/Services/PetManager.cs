@@ -296,8 +296,6 @@ namespace VSPets.Services
 
             PetRemoved?.Invoke(this, new PetEventArgs { Pet = pet });
 
-            await new InvalidOperationException($"VSPets: Removed {pet.Name}").LogAsync();
-
             return true;
         }
 
@@ -381,8 +379,6 @@ namespace VSPets.Services
                     basePet.ReactToBuild(success);
                 }
             }
-
-            new InvalidOperationException($"VSPets: Notified {pets.Count} pets of build {(success ? "success" : "failure")}").Log();
         }
 
         public IPet CreatePet(PetType petType, PetColor? color)
@@ -599,8 +595,6 @@ namespace VSPets.Services
             }
 
             _activeBall = null;
-
-            new InvalidOperationException($"VSPets: {catcher.Name} caught the ball!").Log();
         }
 
         /// <summary>
@@ -771,8 +765,6 @@ namespace VSPets.Services
                 basePet2.TriggerHappy();
                 basePet2.ShowSpeech(greeting, 2000);
             }
-
-            new InvalidOperationException($"VSPets: {pet1.Name} met {pet2.Name}!").Log();
         }
 
         /// <summary>
