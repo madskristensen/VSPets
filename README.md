@@ -116,6 +116,13 @@ Your pets aren't just decorations—they have personality!
 
 ---
 
+## ⚡ Performance
+
+- Pets use lightweight sprite sheets rendered in the background; there is no 3D pipeline, shaders, or heavy GPU work.
+- Animation frames are tiny images composited over the status bar, so CPU and memory impact stay minimal even with several pets running.
+
+---
+
 ## 🤝 Contributing
 
 Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/madskristensen/VSPets/issues).
