@@ -86,26 +86,6 @@ Access settings via **Tools > Options > VS Pets**:
 
 ---
 
-## 📋 Menu Commands
-
-| Command | Description |
-|---------|-------------|
-| Add Cat | Add a random cat to your status bar |
-| Add Dog | Add a random dog to your status bar |
-| Add Fox | Add a fox to your status bar |
-| Add Wolf | Add a wolf to your status bar |
-| Add Bear | Add a bear to your status bar |
-| Add Axolotl | Add an axolotl to your status bar |
-| Add Turtle | Add a turtle to your status bar |
-| Add Bunny | Add a bunny to your status bar |
-| Add Raccoon | Add a raccoon to your status bar |
-| Add T-Rex | Add a T-Rex to your status bar |
-| Add Clippy | Bring back the classic Office assistant |
-| Add Rubber Duck | Add a debugging companion |
-| Remove All Pets | Clear all pets from the status bar |
-
----
-
 ## 🎮 Pet Behaviors
 
 Your pets aren't just decorations—they have personality!
