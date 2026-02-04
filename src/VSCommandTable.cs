@@ -31,5 +31,6 @@ namespace VSPets
         public const int AddClippyCommand = 0x0140;
         public const int AddRubberDuckCommand = 0x0150;
         public const int RemoveAllPetsCommand = 0x0200;
+        public const int TogglePetsVisibilityCommand = 0x0300;
     }
 }

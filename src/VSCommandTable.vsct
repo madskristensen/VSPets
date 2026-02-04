@@ -46,6 +46,18 @@
           <LocCanonicalName>.VSPets.RemoveAllPets</LocCanonicalName>
         </Strings>
       </Button>
+
+      <!-- Toggle Pets Visibility Command -->
+      <Button guid="VSPets" id="TogglePetsVisibilityCommand" priority="0x0300" type="Button">
+        <Parent guid="VSPets" id="VSPetsMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="HideMember" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Hide Pets</ButtonText>
+          <LocCanonicalName>.VSPets.TogglePetsVisibility</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
   </Commands>
 
@@ -60,6 +72,7 @@
       <IDSymbol name="AddClippyCommand" value="0x0140" />
       <IDSymbol name="AddRubberDuckCommand" value="0x0150" />
       <IDSymbol name="RemoveAllPetsCommand" value="0x0200" />
+      <IDSymbol name="TogglePetsVisibilityCommand" value="0x0300" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

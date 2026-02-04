@@ -50,6 +50,7 @@
     <Compile Include="Animation\SpriteManager.cs" />
     <Compile Include="Commands\AddPetCommand.cs" />
     <Compile Include="Commands\RemoveAllPetsCommand.cs" />
+    <Compile Include="Commands\TogglePetsVisibilityCommand.cs" />
     <Compile Include="Controls\PetControl.xaml.cs">
       <DependentUpon>PetControl.xaml</DependentUpon>
     </Compile>

@@ -44,6 +44,8 @@ namespace VSPets.Services
         private DispatcherTimer _updateTimer;
         private bool _isInitialized;
         private bool _isDisposed;
+        private bool _isHidden;
+        private List<PetData> _hiddenPetsData;
 
         /// <summary>
         /// Gets the singleton instance of the pet manager.
@@ -93,6 +95,11 @@ namespace VSPets.Services
         /// Gets whether the manager is initialized and running.
         /// </summary>
         public bool IsInitialized => _isInitialized;
+
+        /// <summary>
+        /// Gets whether the pets are currently hidden.
+        /// </summary>
+        public bool IsHidden => _isHidden;
 
         private PetManager()
         {
@@ -786,6 +793,101 @@ namespace VSPets.Services
             }
 
             _isInitialized = false;
+        }
+
+        /// <summary>
+        /// Hides all pets by removing them from WPF completely.
+        /// Pet data is stored so they can be restored when shown again.
+        /// </summary>
+        public async Task HidePetsAsync()
+        {
+            if (_isHidden || !_isInitialized)
+            {
+                return;
+            }
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Store current pet data for restoration
+            _petLock.EnterReadLock();
+            try
+            {
+                _hiddenPetsData = _pets.Select(p => new PetData
+                {
+                    PetType = p.PetType,
+                    Color = p.Color,
+                    Name = p.Name
+                }).ToList();
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
+            }
+
+            // Stop the update timer
+            _updateTimer?.Stop();
+
+            // Remove all pets
+            List<Guid> petIds;
+            _petLock.EnterReadLock();
+            try
+            {
+                petIds = [.. _pets.Select(p => p.Id)];
+            }
+            finally
+            {
+                _petLock.ExitReadLock();
+            }
+
+            foreach (Guid id in petIds)
+            {
+                await RemovePetAsync(id);
+            }
+
+            // Remove the canvas from WPF
+            if (_hostCanvas != null)
+            {
+                await VSPets.StatusBarInjector.RemoveControlAsync(_hostCanvas);
+                _hostCanvas = null;
+            }
+
+            _isHidden = true;
+            _isInitialized = false;
+        }
+
+        /// <summary>
+        /// Shows pets by re-injecting the canvas and restoring previously hidden pets.
+        /// </summary>
+        public async Task ShowPetsAsync()
+        {
+            if (!_isHidden)
+            {
+                return;
+            }
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Re-initialize (creates new canvas and injects it)
+            await InitializeAsync();
+
+            // Restore saved pets
+            if (_hiddenPetsData != null && _hiddenPetsData.Any())
+            {
+                foreach (PetData petData in _hiddenPetsData)
+                {
+                    await AddPetAsync(petData.PetType, petData.Color, petData.Name);
+
+                    // Small delay between spawns to avoid overlap
+                    if (petData != _hiddenPetsData.Last())
+                    {
+                        await Task.Delay(_random.Next(2000, 5000));
+                    }
+                }
+
+                _hiddenPetsData = null;
+            }
+
+            _isHidden = false;
         }
 
         public void Dispose()
