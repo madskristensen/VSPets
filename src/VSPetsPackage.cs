@@ -27,6 +27,7 @@ namespace VSPets
         private EnvDTE.BuildEvents _buildEvents;
         private RatingPrompt _ratingPrompt;
         private readonly Random _startupRandom = new();
+        private bool _overallBuildSuccess;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -51,6 +52,8 @@ namespace VSPets
                 if (_dte != null)
                 {
                     _buildEvents = _dte.Events.BuildEvents;
+                    _buildEvents.OnBuildBegin += OnBuildBegin;
+                    _buildEvents.OnBuildProjConfigDone += OnBuildProjConfigDone;
                     _buildEvents.OnBuildDone += OnBuildDone;
                 }
 
@@ -92,25 +95,25 @@ namespace VSPets
             }
         }
 
+        private void OnBuildBegin(vsBuildScope scope, vsBuildAction action)
+        {
+            // Reset build success tracking at the start of each build
+            _overallBuildSuccess = true;
+        }
+
+        private void OnBuildProjConfigDone(string project, string projectConfig, string platform, string solutionConfig, bool success)
+        {
+            // Track the overall build success - if any project fails, the overall build fails
+            if (!success)
+            {
+                _overallBuildSuccess = false;
+            }
+        }
+
         private void OnBuildDone(vsBuildScope scope, vsBuildAction action)
         {
-            // Determine if build was successful based on error count
-            JoinableTaskFactory.RunAsync(async () =>
-            {
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                try
-                {
-                    var errorCount = _dte?.ToolWindows.ErrorList.ErrorItems.Count ?? 0;
-                    var success = errorCount == 0;
-                    PetManager.Instance.NotifyBuildComplete(success);
-                }
-                catch
-                {
-                    // If we can't determine, assume success
-                    PetManager.Instance.NotifyBuildComplete(true);
-                }
-            }).FireAndForget();
+            // Notify pets about build completion with the tracked success status
+            PetManager.Instance.NotifyBuildComplete(_overallBuildSuccess);
         }
 
         private void OnPetAdded(object sender, PetEventArgs e)
@@ -127,6 +130,8 @@ namespace VSPets
                 // Unsubscribe from events
                 if (_buildEvents != null)
                 {
+                    _buildEvents.OnBuildBegin -= OnBuildBegin;
+                    _buildEvents.OnBuildProjConfigDone -= OnBuildProjConfigDone;
                     _buildEvents.OnBuildDone -= OnBuildDone;
                 }
 
