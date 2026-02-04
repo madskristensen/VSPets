@@ -706,7 +706,6 @@ namespace VSPets.Services
 
                 _activeBall.ChasingPetId = chasingPet.Id;
                 chasingPet.ForceState(PetState.Chasing);
-                new InvalidOperationException($"VSPets: {chasingPet.Name} is chasing the ball!").Log();
             }
             finally
             {

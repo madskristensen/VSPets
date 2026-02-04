@@ -156,7 +156,7 @@ namespace VSPets
                             }
                             catch (OperationCanceledException ex)
                             {
-                                new TimeoutException("VSPets: Save timed out during shutdown.", ex).Log();
+                                ex.Log();
                             }
                         }
                     }
