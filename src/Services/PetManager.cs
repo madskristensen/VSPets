@@ -436,10 +436,15 @@ namespace VSPets.Services
             {
                 try
                 {
-                    // Handle chasing behavior
-                    if (pet is BasePet basePet && basePet.State == PetState.Chasing && _activeBall != null)
+                    // Handle chasing behavior - only the assigned chaser should chase the ball
+                    if (pet is BasePet basePet && basePet.State == PetState.Chasing && _activeBall != null && _activeBall.ChasingPetId == basePet.Id)
                     {
                         UpdateChasingPet(basePet, deltaTime);
+                    }
+                    else if (pet is BasePet bp && bp.State == PetState.Chasing && (_activeBall == null || _activeBall.ChasingPetId != bp.Id))
+                    {
+                        // Pet was chasing but is no longer the assigned chaser (new ball thrown or ball gone)
+                        bp.ForceState(PetState.Idle);
                     }
                     else
                     {
