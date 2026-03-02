@@ -27,7 +27,6 @@ namespace VSPets
         private EnvDTE.BuildEvents _buildEvents;
         private RatingPrompt _ratingPrompt;
         private readonly Random _startupRandom = new();
-        private bool _overallBuildSuccess;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -52,8 +51,6 @@ namespace VSPets
                 if (_dte != null)
                 {
                     _buildEvents = _dte.Events.BuildEvents;
-                    _buildEvents.OnBuildBegin += OnBuildBegin;
-                    _buildEvents.OnBuildProjConfigDone += OnBuildProjConfigDone;
                     _buildEvents.OnBuildDone += OnBuildDone;
                 }
 
@@ -95,25 +92,13 @@ namespace VSPets
             }
         }
 
-        private void OnBuildBegin(vsBuildScope scope, vsBuildAction action)
-        {
-            // Reset build success tracking at the start of each build
-            _overallBuildSuccess = true;
-        }
-
-        private void OnBuildProjConfigDone(string project, string projectConfig, string platform, string solutionConfig, bool success)
-        {
-            // Track the overall build success - if any project fails, the overall build fails
-            if (!success)
-            {
-                _overallBuildSuccess = false;
-            }
-        }
-
         private void OnBuildDone(vsBuildScope scope, vsBuildAction action)
         {
-            // Notify pets about build completion with the tracked success status
-            PetManager.Instance.NotifyBuildComplete(_overallBuildSuccess);
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            // Use VS-reported final build result. LastBuildInfo is number of failed projects (0 = success).
+            var buildSuccess = _dte?.Solution?.SolutionBuild?.LastBuildInfo == 0;
+            PetManager.Instance.NotifyBuildComplete(buildSuccess);
         }
 
         private void OnPetAdded(object sender, PetEventArgs e)
@@ -130,8 +115,6 @@ namespace VSPets
                 // Unsubscribe from events
                 if (_buildEvents != null)
                 {
-                    _buildEvents.OnBuildBegin -= OnBuildBegin;
-                    _buildEvents.OnBuildProjConfigDone -= OnBuildProjConfigDone;
                     _buildEvents.OnBuildDone -= OnBuildDone;
                 }
 
