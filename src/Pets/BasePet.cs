@@ -1,7 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using VSPets.Animation;
 using VSPets.Models;
 
@@ -21,8 +18,6 @@ namespace VSPets.Pets
         private double _stateTimer;
         private double _stateDuration;
         private PetState? _returnToState;
-        private Image _spriteImage;
-        private Border _container;
 
         // Idle animation state
         private double _breathingPhase;
@@ -95,7 +90,6 @@ namespace VSPets.Pets
                 {
                     PetDirection old = _direction;
                     _direction = value;
-                    UpdateSpriteDirection();
                     DirectionChanged?.Invoke(this, new PetDirectionChangedEventArgs
                     {
                         OldDirection = old,
@@ -124,13 +118,12 @@ namespace VSPets.Pets
                         NewX = _x,
                         NewY = _y
                     });
-                    UpdateControlPosition();
                 }
             }
         }
 
         public double Y => _y;
-        public FrameworkElement Control => _container;
+        public FrameworkElement Control => null;
 
         public virtual bool CanClimb => true;
         public abstract string HelloMessage { get; }
@@ -185,7 +178,6 @@ namespace VSPets.Pets
             _stateTimeVariation = 0.7 + _random.NextDouble() * 0.6;   // 0.7 to 1.3
             _exitChanceVariation = 0.15 + _random.NextDouble() * 0.3; // 0.15 to 0.45 exit probability
 
-            CreateControl();
             SetState(PetState.Idle);
         }
 
@@ -225,41 +217,6 @@ namespace VSPets.Pets
         /// Generates a default name for this pet type.
         /// </summary>
         protected abstract string GenerateDefaultName();
-
-        private void CreateControl()
-        {
-            _spriteImage = new Image
-            {
-                Width = (int)Size,
-                Height = (int)Size,
-                Stretch = Stretch.Uniform,
-                RenderTransformOrigin = new Point(0.5, 0.5)
-            };
-
-            _container = new Border
-            {
-                Background = Brushes.Transparent,
-                Child = _spriteImage,
-                IsHitTestVisible = true
-                // ToolTip removed - using NameLabel in PetControl instead
-            };
-
-            // Set up mouse hover for happiness
-            _container.MouseEnter += OnContainerMouseEnter;
-            _container.MouseLeave += OnContainerMouseLeave;
-
-            UpdateSprite();
-        }
-
-        private void OnContainerMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            TriggerHappy();
-        }
-
-        private void OnContainerMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            // Optional: end happy early
-        }
 
         public void Update(double deltaTime, double canvasWidth)
         {
@@ -463,8 +420,6 @@ namespace VSPets.Pets
                     NewX = _x,
                     NewY = _y
                 });
-
-                UpdateControlPosition();
             }
         }
 
@@ -483,15 +438,11 @@ namespace VSPets.Pets
                 {
                     // Exited right, enter from left
                     _x = -petSize;
-                    // Ensure sprite direction matches movement
-                    UpdateSpriteDirection();
                 }
                 else
                 {
                     // Exited left, enter from right
                     _x = canvasWidth + petSize;
-                    // Ensure sprite direction matches movement
-                    UpdateSpriteDirection();
                 }
             }
             else
@@ -502,14 +453,12 @@ namespace VSPets.Pets
                     // Exited right, re-enter from right walking left
                     _x = canvasWidth + petSize;
                     _direction = PetDirection.Left;
-                    UpdateSpriteDirection();
                 }
                 else
                 {
                     // Exited left, re-enter from left walking right
                     _x = -petSize;
                     _direction = PetDirection.Right;
-                    UpdateSpriteDirection();
                 }
             }
 
@@ -628,7 +577,6 @@ namespace VSPets.Pets
         {
             PetDirection oldDirection = _direction;
             _direction = _direction == PetDirection.Left ? PetDirection.Right : PetDirection.Left;
-            UpdateSpriteDirection();
 
             DirectionChanged?.Invoke(this, new PetDirectionChangedEventArgs
             {
@@ -652,8 +600,6 @@ namespace VSPets.Pets
             _frameTimer = 0;
             _frameCount = renderer.GetFrameCount(state);
             _frameDuration = renderer.GetFrameDuration(state);
-
-            UpdateSprite();
 
             if (oldState != state)
             {
@@ -833,8 +779,6 @@ namespace VSPets.Pets
             _x = x;
             _y = y;
 
-            UpdateControlPosition();
-
             PositionChanged?.Invoke(this, new PetPositionChangedEventArgs
             {
                 OldX = oldX,
@@ -850,7 +794,6 @@ namespace VSPets.Pets
             {
                 PetDirection oldDirection = _direction;
                 _direction = direction;
-                UpdateSpriteDirection();
 
                 DirectionChanged?.Invoke(this, new PetDirectionChangedEventArgs
                 {
@@ -860,57 +803,8 @@ namespace VSPets.Pets
             }
         }
 
-        private void UpdateSprite()
-        {
-            // Use the procedural sprite renderer for animated frames
-            ProceduralSpriteRenderer renderer = Animation.ProceduralSpriteRenderer.Instance;
-            BitmapSource sprite = renderer.RenderFrame(PetType, Color, _currentState, _currentFrame, (int)Size);
-
-            if (sprite != null)
-            {
-                _spriteImage.Source = sprite;
-            }
-
-            UpdateSpriteDirection();
-        }
-
-        /// <summary>
-        /// Refreshes the sprite for the current frame (called by PetControl on FrameChanged).
-        /// </summary>
-        public void RefreshSprite()
-        {
-            UpdateSprite();
-        }
-
-        private void UpdateSpriteDirection()
-        {
-            // Flip based on the artwork's default facing direction
-            var facesLeft = FacesLeftByDefault;
-            var scaleX = facesLeft
-                ? (_direction == PetDirection.Right ? -1 : 1)
-                : (_direction == PetDirection.Left ? -1 : 1);
-
-            _spriteImage.RenderTransform = new ScaleTransform(scaleX, 1);
-        }
-
-        private void UpdateControlPosition()
-        {
-            if (_container != null)
-            {
-                Canvas.SetLeft(_container, _x);
-                Canvas.SetBottom(_container, _y);
-            }
-        }
-
         public virtual void Dispose()
         {
-            if (_container != null)
-            {
-                _container.MouseEnter -= OnContainerMouseEnter;
-                _container.MouseLeave -= OnContainerMouseLeave;
-            }
-            _spriteImage = null;
-            _container = null;
         }
     }
 }

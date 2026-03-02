@@ -40,9 +40,7 @@ namespace VSPets.Controls
                 if (_pet != null)
                 {
                     _pet.StateChanged -= OnPetStateChanged;
-                    _pet.PositionChanged -= OnPetPositionChanged;
                     _pet.Speech -= OnPetSpeech;
-                    _pet.DirectionChanged -= OnPetDirectionChanged;
 
                     if (_basePet != null)
                     {
@@ -57,9 +55,7 @@ namespace VSPets.Controls
                 if (_pet != null)
                 {
                     _pet.StateChanged += OnPetStateChanged;
-                    _pet.PositionChanged += OnPetPositionChanged;
                     _pet.Speech += OnPetSpeech;
-                    _pet.DirectionChanged += OnPetDirectionChanged;
 
                     if (_basePet != null)
                     {
@@ -372,32 +368,6 @@ namespace VSPets.Controls
             }
         }
 
-        private void OnPetPositionChanged(object sender, PetPositionChangedEventArgs e)
-        {
-            // Use BeginInvoke to avoid blocking if not already on UI thread
-            if (Dispatcher.CheckAccess())
-            {
-                Canvas.SetLeft(this, e.NewX);
-                Canvas.SetBottom(this, e.NewY);
-                if (_pet != null)
-                {
-                    SetDirection(_pet.Direction);
-                }
-            }
-            else
-            {
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    Canvas.SetLeft(this, e.NewX);
-                    Canvas.SetBottom(this, e.NewY);
-                    if (_pet != null)
-                    {
-                        SetDirection(_pet.Direction);
-                    }
-                }));
-            }
-        }
-
         private void OnPetSpeech(object sender, PetSpeechEventArgs e)
         {
             // Use BeginInvoke to avoid blocking if not already on UI thread
@@ -408,19 +378,6 @@ namespace VSPets.Controls
             else
             {
                 Dispatcher.BeginInvoke(new Action(() => ShowSpeechBubble(e.Message, e.DurationMs)));
-            }
-        }
-
-        private void OnPetDirectionChanged(object sender, PetDirectionChangedEventArgs e)
-        {
-            // Use BeginInvoke to avoid blocking if not already on UI thread
-            if (Dispatcher.CheckAccess())
-            {
-                SetDirection(e.NewDirection);
-            }
-            else
-            {
-                Dispatcher.BeginInvoke(new Action(() => SetDirection(e.NewDirection)));
             }
         }
 
@@ -682,9 +639,7 @@ namespace VSPets.Controls
             if (_pet != null)
             {
                 _pet.StateChanged -= OnPetStateChanged;
-                _pet.PositionChanged -= OnPetPositionChanged;
                 _pet.Speech -= OnPetSpeech;
-                _pet.DirectionChanged -= OnPetDirectionChanged;
             }
 
             if (_basePet != null)

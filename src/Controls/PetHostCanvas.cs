@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Threading;
-using Microsoft.VisualStudio.Shell;
 
 namespace VSPets.Controls
 {
@@ -14,7 +12,6 @@ namespace VSPets.Controls
     /// </summary>
     public class PetHostCanvas : Canvas
     {
-        private readonly DispatcherTimer _updateTimer;
         private readonly List<FrameworkElement> _pets = [];
         private readonly object _petLock = new();
 
@@ -34,29 +31,12 @@ namespace VSPets.Controls
         /// </summary>
         public double RightBoundary => ActualWidth;
 
-        /// <summary>
-        /// Event fired on each animation frame (for pet movement updates).
-        /// </summary>
-        public event EventHandler<AnimationFrameEventArgs> AnimationFrame;
-
         public PetHostCanvas()
         {
             // Make the canvas transparent and overlay-able
             Background = Brushes.Transparent;
             IsHitTestVisible = true;
             ClipToBounds = false;
-
-            // Set up the animation timer (targeting ~30fps for smooth but efficient animation)
-            _updateTimer = new DispatcherTimer(DispatcherPriority.Render)
-            {
-                Interval = TimeSpan.FromMilliseconds(33) // ~30 FPS
-            };
-            _updateTimer.Tick += OnAnimationTick;
-
-            // Start/stop timer based on visibility
-            IsVisibleChanged += OnVisibilityChanged;
-            Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
         }
 
         /// <summary>
@@ -86,9 +66,6 @@ namespace VSPets.Controls
             SetBottom(petControl, FloorY);
 
             Children.Add(petControl);
-
-            // Ensure timer is running if we have pets
-            EnsureTimerState();
         }
 
         /// <summary>
@@ -107,9 +84,6 @@ namespace VSPets.Controls
             }
 
             Children.Remove(petControl);
-
-            // Stop timer if no pets
-            EnsureTimerState();
         }
 
         /// <summary>
@@ -190,51 +164,6 @@ namespace VSPets.Controls
             return x + petWidth >= RightBoundary - threshold;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            EnsureTimerState();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            _updateTimer.Stop();
-        }
-
-        private void OnVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            EnsureTimerState();
-        }
-
-        private void EnsureTimerState()
-        {
-            bool shouldRun;
-            lock (_petLock)
-            {
-                shouldRun = _pets.Count > 0 && IsVisible && IsLoaded;
-            }
-
-            if (shouldRun && !_updateTimer.IsEnabled)
-            {
-                _updateTimer.Start();
-            }
-            else if (!shouldRun && _updateTimer.IsEnabled)
-            {
-                _updateTimer.Stop();
-            }
-        }
-
-        private void OnAnimationTick(object sender, EventArgs e)
-        {
-            var args = new AnimationFrameEventArgs
-            {
-                DeltaTime = _updateTimer.Interval.TotalSeconds,
-                CanvasWidth = ActualWidth,
-                CanvasHeight = ActualHeight
-            };
-
-            AnimationFrame?.Invoke(this, args);
-        }
-
         /// <summary>
         /// Converts a local canvas X coordinate to screen X coordinate.
         /// </summary>
@@ -266,26 +195,5 @@ namespace VSPets.Controls
                 return screenX;
             }
         }
-    }
-
-    /// <summary>
-    /// Event arguments for animation frame updates.
-    /// </summary>
-    public class AnimationFrameEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Time since last frame in seconds.
-        /// </summary>
-        public double DeltaTime { get; set; }
-
-        /// <summary>
-        /// Current canvas width.
-        /// </summary>
-        public double CanvasWidth { get; set; }
-
-        /// <summary>
-        /// Current canvas height.
-        /// </summary>
-        public double CanvasHeight { get; set; }
     }
 }
