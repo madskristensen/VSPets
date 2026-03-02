@@ -42,6 +42,8 @@ namespace VSPets.Services
 
         private PetHostCanvas _hostCanvas;
         private DispatcherTimer _updateTimer;
+        private DateTime _lastUpdateTime;
+        private const double _maxDeltaTime = 0.1; // Cap at 100ms to prevent teleporting during CPU spikes
         private bool _isInitialized;
         private bool _isDisposed;
         private bool _isHidden;
@@ -131,6 +133,7 @@ namespace VSPets.Services
                 Interval = TimeSpan.FromMilliseconds(33) // ~30 FPS
             };
             _updateTimer.Tick += OnUpdateTick;
+            _lastUpdateTime = DateTime.Now;
             _updateTimer.Start();
 
             _isInitialized = true;
@@ -415,7 +418,15 @@ namespace VSPets.Services
                 return;
             }
 
-            var deltaTime = _updateTimer.Interval.TotalSeconds;
+            // Calculate actual elapsed time and clamp to prevent teleporting during CPU spikes
+            var now = DateTime.Now;
+            var actualDelta = (now - _lastUpdateTime).TotalSeconds;
+            _lastUpdateTime = now;
+
+            // Clamp deltaTime: use actual time but cap it to prevent large jumps
+            // When CPU is busy, frames get delayed - without clamping, pets would "teleport"
+            var deltaTime = Math.Min(actualDelta, _maxDeltaTime);
+
             var canvasWidth = _hostCanvas?.ActualWidth ?? VSPets.StatusBarInjector.StatusBarWidth;
 
             // Update ball physics
