@@ -41,6 +41,30 @@ namespace VSPets.Services
         private const double _chaseSpeed = 180; // Pixels per second when chasing
         private const double _catchDistance = 20; // Distance at which pet catches ball
 
+        private enum UpdateQualityLevel
+        {
+            Normal,
+            Reduced,
+            Minimal
+        }
+
+        private static readonly TimeSpan _normalTickInterval = TimeSpan.FromMilliseconds(33);
+        private static readonly TimeSpan _reducedTickInterval = TimeSpan.FromMilliseconds(50);
+        private static readonly TimeSpan _minimalTickInterval = TimeSpan.FromMilliseconds(66);
+        private const double _highStressThresholdSeconds = 0.055;
+        private const double _criticalStressThresholdSeconds = 0.090;
+        private const double _recoverToNormalThresholdSeconds = 0.040;
+        private const double _recoverToReducedThresholdSeconds = 0.065;
+        private const double _stressSmoothingFactor = 0.12;
+        private const double _qualityChangeCooldownSeconds = 2.0;
+
+        private UpdateQualityLevel _updateQualityLevel = UpdateQualityLevel.Normal;
+        private double _smoothedFrameDeltaSeconds = _normalTickInterval.TotalSeconds;
+        private DateTime _nextQualityChangeAllowedAt = DateTime.MinValue;
+        private double _randomThrowCheckAccumulator;
+        private double _interactionCheckAccumulator;
+        private double _breathingUpdateAccumulator;
+
         private PetHostCanvas _hostCanvas;
         private DispatcherTimer _updateTimer;
         private DateTime _lastUpdateTime;
@@ -131,9 +155,10 @@ namespace VSPets.Services
             // Set up the update timer for pet animations
             _updateTimer = new DispatcherTimer(DispatcherPriority.Background)
             {
-                Interval = TimeSpan.FromMilliseconds(33) // ~30 FPS
+                Interval = _normalTickInterval // ~30 FPS
             };
             _updateTimer.Tick += OnUpdateTick;
+            ResetAdaptivePerformanceState();
             _lastUpdateTime = DateTime.Now;
             _updateTimer.Start();
 
@@ -424,6 +449,8 @@ namespace VSPets.Services
             var actualDelta = (now - _lastUpdateTime).TotalSeconds;
             _lastUpdateTime = now;
 
+            UpdateAdaptivePerformanceMode(actualDelta, now);
+
             // Clamp deltaTime: use actual time but cap it to prevent large jumps
             // When CPU is busy, frames get delayed - without clamping, pets would "teleport"
             var deltaTime = Math.Min(actualDelta, _maxDeltaTime);
@@ -445,6 +472,8 @@ namespace VSPets.Services
             {
                 _petLock.ExitReadLock();
             }
+
+            var shouldUpdateBreathing = ShouldRunBreathingUpdate(deltaTime);
 
             foreach (IPet pet in petsToUpdate)
             {
@@ -471,7 +500,10 @@ namespace VSPets.Services
                         Canvas.SetLeft(control, pet.X);
                         Canvas.SetBottom(control, pet.Y);
                         control.SetDirection(pet.Direction);
-                        control.UpdateBreathing(); // Drive breathing animation from central timer
+                        if (shouldUpdateBreathing)
+                        {
+                            control.UpdateBreathing(); // Drive breathing animation from central timer
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -480,11 +512,17 @@ namespace VSPets.Services
                 }
             }
 
-            // Check for pet interactions (when pets are close to each other)
-            CheckPetInteractions(petsToUpdate);
+            if (ShouldRunInteractionCheck(deltaTime, out var interactionElapsed))
+            {
+                // Check for pet interactions (when pets are close to each other)
+                CheckPetInteractions(petsToUpdate, interactionElapsed);
+            }
 
-            // Random ball throw (rare)
-            CheckRandomBallThrow(petsToUpdate, deltaTime);
+            if (ShouldRunRandomThrowCheck(deltaTime, out var randomThrowElapsed))
+            {
+                // Random ball throw (rare)
+                CheckRandomBallThrow(petsToUpdate, randomThrowElapsed);
+            }
         }
 
         // Random ball throw timing
@@ -774,9 +812,9 @@ namespace VSPets.Services
         private double _lastInteractionTime;
         private const double _interactionCooldown = 8.0; // Seconds between interactions
 
-        private void CheckPetInteractions(IReadOnlyList<IPet> pets)
+        private void CheckPetInteractions(IReadOnlyList<IPet> pets, double elapsedTime)
         {
-            _lastInteractionTime += _updateTimer.Interval.TotalSeconds;
+            _lastInteractionTime += elapsedTime;
 
             // Don't check too frequently
             if (_lastInteractionTime < _interactionCooldown || pets.Count < 2)
@@ -843,6 +881,8 @@ namespace VSPets.Services
                 await VSPets.StatusBarInjector.RemoveControlAsync(_hostCanvas);
             }
 
+            ResetAdaptivePerformanceState();
+
             _isInitialized = false;
         }
 
@@ -877,6 +917,7 @@ namespace VSPets.Services
 
             // Stop the update timer
             _updateTimer?.Stop();
+            ResetAdaptivePerformanceState();
 
             // Remove all pets
             List<Guid> petIds;
@@ -950,6 +991,7 @@ namespace VSPets.Services
 
             _isDisposed = true;
             _updateTimer?.Stop();
+            ResetAdaptivePerformanceState();
 
             _petLock.EnterWriteLock();
             try
@@ -975,6 +1017,149 @@ namespace VSPets.Services
 
             _petLock.Dispose();
             _hostCanvas = null;
+        }
+
+        private void UpdateAdaptivePerformanceMode(double actualDelta, DateTime now)
+        {
+            if (actualDelta <= 0)
+            {
+                return;
+            }
+
+            _smoothedFrameDeltaSeconds = (_smoothedFrameDeltaSeconds * (1.0 - _stressSmoothingFactor)) +
+                                         (actualDelta * _stressSmoothingFactor);
+
+            if (now < _nextQualityChangeAllowedAt)
+            {
+                return;
+            }
+
+            var previousLevel = _updateQualityLevel;
+
+            switch (_updateQualityLevel)
+            {
+                case UpdateQualityLevel.Normal:
+                    if (_smoothedFrameDeltaSeconds >= _criticalStressThresholdSeconds)
+                    {
+                        _updateQualityLevel = UpdateQualityLevel.Minimal;
+                    }
+                    else if (_smoothedFrameDeltaSeconds >= _highStressThresholdSeconds)
+                    {
+                        _updateQualityLevel = UpdateQualityLevel.Reduced;
+                    }
+                    break;
+
+                case UpdateQualityLevel.Reduced:
+                    if (_smoothedFrameDeltaSeconds >= _criticalStressThresholdSeconds)
+                    {
+                        _updateQualityLevel = UpdateQualityLevel.Minimal;
+                    }
+                    else if (_smoothedFrameDeltaSeconds <= _recoverToNormalThresholdSeconds)
+                    {
+                        _updateQualityLevel = UpdateQualityLevel.Normal;
+                    }
+                    break;
+
+                case UpdateQualityLevel.Minimal:
+                    if (_smoothedFrameDeltaSeconds <= _recoverToReducedThresholdSeconds)
+                    {
+                        _updateQualityLevel = UpdateQualityLevel.Reduced;
+                    }
+                    break;
+            }
+
+            if (previousLevel != _updateQualityLevel)
+            {
+                ApplyUpdateQualityInterval();
+                _nextQualityChangeAllowedAt = now.AddSeconds(_qualityChangeCooldownSeconds);
+            }
+        }
+
+        private void ApplyUpdateQualityInterval()
+        {
+            if (_updateTimer == null)
+            {
+                return;
+            }
+
+            _updateTimer.Interval = _updateQualityLevel switch
+            {
+                UpdateQualityLevel.Normal => _normalTickInterval,
+                UpdateQualityLevel.Reduced => _reducedTickInterval,
+                UpdateQualityLevel.Minimal => _minimalTickInterval,
+                _ => _normalTickInterval
+            };
+        }
+
+        private bool ShouldRunRandomThrowCheck(double deltaTime, out double elapsedTime)
+        {
+            var intervalSeconds = _updateQualityLevel switch
+            {
+                UpdateQualityLevel.Normal => 0,
+                UpdateQualityLevel.Reduced => 0.10,
+                UpdateQualityLevel.Minimal => 0.20,
+                _ => 0
+            };
+
+            return ShouldRunThrottledWork(ref _randomThrowCheckAccumulator, deltaTime, intervalSeconds, out elapsedTime);
+        }
+
+        private bool ShouldRunInteractionCheck(double deltaTime, out double elapsedTime)
+        {
+            var intervalSeconds = _updateQualityLevel switch
+            {
+                UpdateQualityLevel.Normal => 0,
+                UpdateQualityLevel.Reduced => 0.10,
+                UpdateQualityLevel.Minimal => 0.20,
+                _ => 0
+            };
+
+            return ShouldRunThrottledWork(ref _interactionCheckAccumulator, deltaTime, intervalSeconds, out elapsedTime);
+        }
+
+        private bool ShouldRunBreathingUpdate(double deltaTime)
+        {
+            var intervalSeconds = _updateQualityLevel switch
+            {
+                UpdateQualityLevel.Normal => 0,
+                UpdateQualityLevel.Reduced => 0.10,
+                UpdateQualityLevel.Minimal => 0.20,
+                _ => 0
+            };
+
+            return ShouldRunThrottledWork(ref _breathingUpdateAccumulator, deltaTime, intervalSeconds, out _);
+        }
+
+        private static bool ShouldRunThrottledWork(ref double accumulator, double deltaTime, double intervalSeconds, out double elapsedTime)
+        {
+            if (intervalSeconds <= 0)
+            {
+                elapsedTime = deltaTime;
+                return true;
+            }
+
+            accumulator += deltaTime;
+            if (accumulator < intervalSeconds)
+            {
+                elapsedTime = 0;
+                return false;
+            }
+
+            elapsedTime = accumulator;
+            accumulator = 0;
+            return true;
+        }
+
+        private void ResetAdaptivePerformanceState()
+        {
+            _updateQualityLevel = UpdateQualityLevel.Normal;
+            _smoothedFrameDeltaSeconds = _normalTickInterval.TotalSeconds;
+            _nextQualityChangeAllowedAt = DateTime.MinValue;
+            _randomThrowCheckAccumulator = 0;
+            _interactionCheckAccumulator = 0;
+            _breathingUpdateAccumulator = 0;
+
+            ApplyUpdateQualityInterval();
         }
     }
 
