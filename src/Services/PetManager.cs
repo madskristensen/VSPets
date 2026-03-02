@@ -21,6 +21,7 @@ namespace VSPets.Services
         private static readonly object _instanceLock = new();
 
         private readonly List<IPet> _pets = [];
+        private readonly List<IPet> _petsUpdateBuffer = [];
         private readonly Dictionary<Guid, PetControl> _petControls = [];
         private readonly ReaderWriterLockSlim _petLock = new(LockRecursionPolicy.SupportsRecursion);
         private readonly Random _random = new(); // Shared random for better variance
@@ -432,11 +433,13 @@ namespace VSPets.Services
             // Update ball physics
             UpdateBall(deltaTime, canvasWidth);
 
-            List<IPet> petsToUpdate;
+            IReadOnlyList<IPet> petsToUpdate;
             _petLock.EnterReadLock();
             try
             {
-                petsToUpdate = [.. _pets];
+                _petsUpdateBuffer.Clear();
+                _petsUpdateBuffer.AddRange(_pets);
+                petsToUpdate = _petsUpdateBuffer;
             }
             finally
             {
@@ -489,7 +492,7 @@ namespace VSPets.Services
         private const double _minTimeBetweenRandomThrows = 30.0;  // At least 30 seconds between random throws
         private const double _randomThrowChancePerSecond = 0.005; // 0.5% chance per second (very rare)
 
-        private void CheckRandomBallThrow(List<IPet> pets, double deltaTime)
+        private void CheckRandomBallThrow(IReadOnlyList<IPet> pets, double deltaTime)
         {
             // Don't throw if ball is already active
             if (_activeBall != null && _activeBall.IsActive)
@@ -497,10 +500,19 @@ namespace VSPets.Services
                 return;
             }
 
-            // Don't throw if no pets or any pet is already chasing
-            if (pets.Count == 0 || pets.Any(p => p is BasePet bp && bp.State == PetState.Chasing))
+            // Don't throw if no pets
+            if (pets.Count == 0)
             {
                 return;
+            }
+
+            // Don't throw if any pet is already chasing
+            for (var i = 0; i < pets.Count; i++)
+            {
+                if (pets[i] is BasePet chasingPet && chasingPet.State == PetState.Chasing)
+                {
+                    return;
+                }
             }
 
             _timeSinceLastBallThrow += deltaTime;
@@ -514,15 +526,28 @@ namespace VSPets.Services
             // Random chance to throw
             if (_random.NextDouble() < _randomThrowChancePerSecond * deltaTime)
             {
-                // Pick a random pet to "throw" the ball
-                var eligiblePets = pets
-                    .OfType<BasePet>()
-                    .Where(p => p.State != PetState.Sleeping && p.State != PetState.Dragging)
-                    .ToList();
+                // Pick a random eligible pet without allocating intermediate lists
+                BasePet thrower = null;
+                var eligibleCount = 0;
 
-                if (eligiblePets.Count > 0)
+                for (var i = 0; i < pets.Count; i++)
                 {
-                    BasePet thrower = eligiblePets[_random.Next(eligiblePets.Count)];
+                    if (pets[i] is not BasePet candidate ||
+                        candidate.State == PetState.Sleeping ||
+                        candidate.State == PetState.Dragging)
+                    {
+                        continue;
+                    }
+
+                    eligibleCount++;
+                    if (_random.Next(eligibleCount) == 0)
+                    {
+                        thrower = candidate;
+                    }
+                }
+
+                if (thrower != null)
+                {
                     var throwX = thrower.X + (int)thrower.Size / 2;
 
                     // Fire and forget the ball throw
@@ -563,21 +588,31 @@ namespace VSPets.Services
             // Check if chasing pet caught the ball
             if (_activeBall.ChasingPetId.HasValue)
             {
+                BasePet chasingPet = null;
                 _petLock.EnterReadLock();
                 try
                 {
-                    if (_pets.FirstOrDefault(p => p.Id == _activeBall.ChasingPetId.Value) is BasePet chasingPet)
+                    for (var i = 0; i < _pets.Count; i++)
                     {
-                        var distance = Math.Abs(chasingPet.X + (int)chasingPet.Size / 2 - _activeBall.X);
-                        if (distance < _catchDistance)
+                        if (_pets[i].Id == _activeBall.ChasingPetId.Value)
                         {
-                            OnBallCaught(chasingPet);
+                            chasingPet = _pets[i] as BasePet;
+                            break;
                         }
                     }
                 }
                 finally
                 {
                     _petLock.ExitReadLock();
+                }
+
+                if (chasingPet != null)
+                {
+                    var distance = Math.Abs(chasingPet.X + (int)chasingPet.Size / 2 - _activeBall.X);
+                    if (distance < _catchDistance)
+                    {
+                        OnBallCaught(chasingPet);
+                    }
                 }
             }
         }
@@ -739,7 +774,7 @@ namespace VSPets.Services
         private double _lastInteractionTime;
         private const double _interactionCooldown = 8.0; // Seconds between interactions
 
-        private void CheckPetInteractions(List<IPet> pets)
+        private void CheckPetInteractions(IReadOnlyList<IPet> pets)
         {
             _lastInteractionTime += _updateTimer.Interval.TotalSeconds;
 

@@ -128,9 +128,6 @@ namespace VSPets.Controls
 
         private void OnPetFrameChanged(object sender, PetFrameChangedEventArgs e)
         {
-            // Refresh the sprite when the animation frame changes
-            _basePet?.RefreshSprite();
-
             // Update display - central timer usually handles this, but sync if needed
             if (Dispatcher.CheckAccess())
             {
