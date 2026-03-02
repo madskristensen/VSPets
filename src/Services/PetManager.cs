@@ -23,6 +23,7 @@ namespace VSPets.Services
         private readonly List<IPet> _pets = [];
         private readonly List<IPet> _petsUpdateBuffer = [];
         private readonly Dictionary<Guid, PetControl> _petControls = [];
+        private readonly Dictionary<Guid, PetRenderState> _petRenderStates = [];
         private readonly ReaderWriterLockSlim _petLock = new(LockRecursionPolicy.SupportsRecursion);
         private readonly Random _random = new(); // Shared random for better variance
 
@@ -48,6 +49,13 @@ namespace VSPets.Services
             Minimal
         }
 
+        private struct PetRenderState
+        {
+            public double X;
+            public double Y;
+            public PetDirection Direction;
+        }
+
         private static readonly TimeSpan _normalTickInterval = TimeSpan.FromMilliseconds(33);
         private static readonly TimeSpan _reducedTickInterval = TimeSpan.FromMilliseconds(50);
         private static readonly TimeSpan _minimalTickInterval = TimeSpan.FromMilliseconds(66);
@@ -69,6 +77,7 @@ namespace VSPets.Services
         private DispatcherTimer _updateTimer;
         private DateTime _lastUpdateTime;
         private const double _maxDeltaTime = 0.1; // Cap at 100ms to prevent teleporting during CPU spikes
+        private const double _renderPositionEpsilon = 0.01;
         private bool _isInitialized;
         private bool _isDisposed;
         private bool _isHidden;
@@ -127,6 +136,10 @@ namespace VSPets.Services
         /// Gets whether the pets are currently hidden.
         /// </summary>
         public bool IsHidden => _isHidden;
+
+        public bool IsReducedPerformanceMode => _updateQualityLevel != UpdateQualityLevel.Normal;
+
+        public bool IsMinimalPerformanceMode => _updateQualityLevel == UpdateQualityLevel.Minimal;
 
         private PetManager()
         {
@@ -269,6 +282,12 @@ namespace VSPets.Services
             {
                 _pets.Add(pet);
                 _petControls[pet.Id] = control;
+                _petRenderStates[pet.Id] = new PetRenderState
+                {
+                    X = double.NaN,
+                    Y = double.NaN,
+                    Direction = pet.Direction
+                };
             }
             finally
             {
@@ -316,6 +335,7 @@ namespace VSPets.Services
                 _pets.Remove(pet);
                 _petControls.TryGetValue(petId, out control);
                 _petControls.Remove(petId);
+                _petRenderStates.Remove(petId);
             }
             finally
             {
@@ -497,9 +517,28 @@ namespace VSPets.Services
                     // Update control position and breathing animation
                     if (_petControls.TryGetValue(pet.Id, out PetControl control))
                     {
-                        Canvas.SetLeft(control, pet.X);
-                        Canvas.SetBottom(control, pet.Y);
-                        control.SetDirection(pet.Direction);
+                        _petRenderStates.TryGetValue(pet.Id, out var renderState);
+
+                        if (double.IsNaN(renderState.X) || Math.Abs(renderState.X - pet.X) > _renderPositionEpsilon)
+                        {
+                            Canvas.SetLeft(control, pet.X);
+                            renderState.X = pet.X;
+                        }
+
+                        if (double.IsNaN(renderState.Y) || Math.Abs(renderState.Y - pet.Y) > _renderPositionEpsilon)
+                        {
+                            Canvas.SetBottom(control, pet.Y);
+                            renderState.Y = pet.Y;
+                        }
+
+                        if (renderState.Direction != pet.Direction)
+                        {
+                            control.SetDirection(pet.Direction);
+                            renderState.Direction = pet.Direction;
+                        }
+
+                        _petRenderStates[pet.Id] = renderState;
+
                         if (shouldUpdateBreathing)
                         {
                             control.UpdateBreathing(); // Drive breathing animation from central timer
@@ -747,57 +786,42 @@ namespace VSPets.Services
             _petLock.EnterReadLock();
             try
             {
-                // Collect eligible pets (not sleeping, not dragging)
-                var eligiblePets = new List<(BasePet pet, double distance)>();
+                BasePet nearestEligiblePet = null;
+                BasePet nearestNonThrowerPet = null;
+                var nearestEligibleDistance = double.MaxValue;
+                var nearestNonThrowerDistance = double.MaxValue;
 
-                foreach (IPet pet in _pets)
+                for (var i = 0; i < _pets.Count; i++)
                 {
-                    if (pet is not BasePet basePet)
+                    if (_pets[i] is not BasePet basePet)
                     {
                         continue;
                     }
 
-                    // Skip pets that are busy (sleeping, dragging, etc.)
                     if (basePet.State == PetState.Sleeping || basePet.State == PetState.Dragging)
                     {
                         continue;
                     }
 
                     var distance = Math.Abs(basePet.X - _activeBall.X);
-                    eligiblePets.Add((basePet, distance));
+
+                    if (distance < nearestEligibleDistance)
+                    {
+                        nearestEligibleDistance = distance;
+                        nearestEligiblePet = basePet;
+                    }
+
+                    if (basePet.Id != throwerId && distance < nearestNonThrowerDistance)
+                    {
+                        nearestNonThrowerDistance = distance;
+                        nearestNonThrowerPet = basePet;
+                    }
                 }
 
-                if (eligiblePets.Count == 0)
+                BasePet chasingPet = nearestNonThrowerPet ?? nearestEligiblePet;
+                if (chasingPet == null)
                 {
                     return;
-                }
-
-                BasePet chasingPet;
-
-                if (eligiblePets.Count == 1)
-                {
-                    // Only one pet - it chases (solo fetch)
-                    chasingPet = eligiblePets[0].pet;
-                }
-                else
-                {
-                    // Multiple pets - prefer a pet OTHER than the thrower
-                    // Find nearest non-thrower
-                    var nonThrowers = eligiblePets
-                        .Where(p => p.pet.Id != throwerId)
-                        .OrderBy(p => p.distance)
-                        .ToList();
-
-                    if (nonThrowers.Count > 0)
-                    {
-                        // Another pet chases
-                        chasingPet = nonThrowers[0].pet;
-                    }
-                    else
-                    {
-                        // All eligible pets are the thrower (shouldn't happen, but fallback)
-                        chasingPet = eligiblePets.OrderBy(p => p.distance).First().pet;
-                    }
                 }
 
                 _activeBall.ChasingPetId = chasingPet.Id;
@@ -1002,6 +1026,7 @@ namespace VSPets.Services
                     control.Dispose();
                 }
                 _petControls.Clear();
+                _petRenderStates.Clear();
 
                 // Then dispose all pets
                 foreach (IPet pet in _pets)

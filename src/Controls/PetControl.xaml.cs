@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using VSPets.Animation;
@@ -22,6 +23,7 @@ namespace VSPets.Controls
         private readonly DispatcherTimer _speechTimer;
         private readonly ScaleTransform _breathingTransform;
         private readonly ScaleTransform _flipTransform;
+        private readonly Effect _defaultSpeechBubbleEffect;
         private bool _isDisposed;
 
         // Drag state
@@ -105,6 +107,8 @@ namespace VSPets.Controls
                 HideSpeechBubble();
                 _speechTimer.Stop();
             };
+
+            _defaultSpeechBubbleEffect = SpeechBubble.Effect;
             // Note: Breathing animation is now driven by PetManager's central update timer
             // via the UpdateBreathing() method to reduce timer overhead
         }
@@ -137,6 +141,11 @@ namespace VSPets.Controls
 
         private void OnPetBehavior(object sender, PetBehaviorEventArgs e)
         {
+            if (PetManager.Instance.IsReducedPerformanceMode)
+            {
+                return;
+            }
+
             // Show a visual indicator for certain behaviors
             switch (e.Behavior)
             {
@@ -290,12 +299,21 @@ namespace VSPets.Controls
         /// </summary>
         public void ShowSpeechBubble(string message, int durationMs = 3000)
         {
+            var reducedEffects = PetManager.Instance.IsReducedPerformanceMode;
+
             SpeechText.Text = message;
             SpeechBubble.Visibility = Visibility.Visible;
+            SpeechBubble.Effect = reducedEffects ? null : _defaultSpeechBubbleEffect;
 
-            // Fade in animation
-            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
-            SpeechBubble.BeginAnimation(OpacityProperty, fadeIn);
+            if (reducedEffects)
+            {
+                SpeechBubble.Opacity = 1;
+            }
+            else
+            {
+                var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
+                SpeechBubble.BeginAnimation(OpacityProperty, fadeIn);
+            }
 
             // Set up timer to hide
             _speechTimer.Stop();
@@ -308,6 +326,14 @@ namespace VSPets.Controls
         /// </summary>
         public void HideSpeechBubble()
         {
+            if (PetManager.Instance.IsReducedPerformanceMode)
+            {
+                SpeechBubble.BeginAnimation(OpacityProperty, null);
+                SpeechBubble.Opacity = 0;
+                SpeechBubble.Visibility = Visibility.Collapsed;
+                return;
+            }
+
             var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200));
             fadeOut.Completed += (s, e) => SpeechBubble.Visibility = Visibility.Collapsed;
             SpeechBubble.BeginAnimation(OpacityProperty, fadeOut);
