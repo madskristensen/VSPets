@@ -68,7 +68,24 @@ namespace VSPets.Pets
         public abstract PetType PetType { get; }
         public PetColor Color { get; }
         public PetSize Size { get; set; } = PetSize.Small;
-        public PetSpeed SpeedSetting { get; set; } = PetSpeed.Normal;
+
+        private PetSpeed? _speedSetting;
+
+        /// <summary>
+        /// Gets or sets the pet's movement speed.
+        /// When not explicitly set, falls back to <see cref="NaturalSpeed"/>.
+        /// </summary>
+        public PetSpeed SpeedSetting
+        {
+            get => _speedSetting ?? NaturalSpeed;
+            set => _speedSetting = value;
+        }
+
+        /// <summary>
+        /// Gets the natural, characteristic speed of this pet type.
+        /// Override in derived classes to give each animal its own default speed.
+        /// </summary>
+        public virtual PetSpeed NaturalSpeed => PetSpeed.Normal;
 
         public PetState CurrentState => _currentState;
 

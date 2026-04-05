@@ -30,6 +30,11 @@ namespace VSPets.Pets
         public override string Emoji => "🐕";
 
         /// <summary>
+        /// Dogs are energetic and love to run around.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Active;
+
+        /// <summary>
         /// Dogs can't climb as well as cats.
         /// </summary>
         public override bool CanClimb => false;

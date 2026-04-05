@@ -24,6 +24,11 @@ namespace VSPets.Pets
 
         public override string Emoji => "🦎";
 
+        /// <summary>
+        /// Axolotls are gentle, slow-moving aquatic creatures.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Slow;
+
         public override bool CanClimb => true; // They can stick to glass!
 
         public override bool FacesLeftByDefault => false; // Axolotl art faces right
