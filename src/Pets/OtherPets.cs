@@ -22,6 +22,11 @@ namespace VSPets.Pets
 
         public override string Emoji => "🦊";
 
+        /// <summary>
+        /// Foxes are quick and agile.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Active;
+
         public override bool CanClimb => true;
 
         public override PetColor[] GetPossibleColors()
@@ -107,6 +112,11 @@ namespace VSPets.Pets
         public override string Emoji => "🦆";
 
         /// <summary>
+        /// Rubber ducks waddle at a leisurely pace.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Slow;
+
+        /// <summary>
         /// Rubber ducks don't climb - they float!
         /// </summary>
         public override bool CanClimb => false;
@@ -169,6 +179,11 @@ namespace VSPets.Pets
         public override string Emoji => "🐢";
 
         /// <summary>
+        /// Turtles are very slow - slow and steady wins the race!
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Lazy;
+
+        /// <summary>
         /// Turtle sprite faces right by default.
         /// </summary>
         public override bool FacesLeftByDefault => false;
@@ -220,6 +235,11 @@ namespace VSPets.Pets
         public override string HelloMessage => "Hop hop! 🐰";
 
         public override string Emoji => "🐰";
+
+        /// <summary>
+        /// Bunnies are quick little hoppers.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Active;
 
         /// <summary>
         /// Bunny sprite faces right by default.
@@ -274,6 +294,11 @@ namespace VSPets.Pets
 
         public override string Emoji => "🦝";
 
+        /// <summary>
+        /// Raccoons move at a moderate, opportunistic pace.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Normal;
+
         public override bool CanClimb => true;
 
         public override PetColor[] GetPossibleColors()
@@ -317,6 +342,11 @@ namespace VSPets.Pets
         public override string HelloMessage => "Awoooo! 🐺";
 
         public override string Emoji => "🐺";
+
+        /// <summary>
+        /// Wolves are fast pack hunters.
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Active;
 
         public override bool CanClimb => false;
 
@@ -367,6 +397,11 @@ namespace VSPets.Pets
         public override string HelloMessage => "RAWR! 🦖";
 
         public override string Emoji => "🦖";
+
+        /// <summary>
+        /// T-Rex is a terrifyingly fast apex predator!
+        /// </summary>
+        public override PetSpeed NaturalSpeed => PetSpeed.Hyper;
 
         /// <summary>
         /// Those tiny arms can't climb much.

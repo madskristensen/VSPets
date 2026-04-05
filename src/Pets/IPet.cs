@@ -40,6 +40,11 @@ namespace VSPets.Pets
         PetSpeed SpeedSetting { get; set; }
 
         /// <summary>
+        /// The natural, characteristic speed for this pet type.
+        /// </summary>
+        PetSpeed NaturalSpeed { get; }
+
+        /// <summary>
         /// Current behavioral state.
         /// </summary>
         PetState CurrentState { get; }
