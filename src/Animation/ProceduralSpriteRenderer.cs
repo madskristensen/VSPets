@@ -479,9 +479,12 @@ namespace VSPets.Animation
             var headX = 22 * scale; // Facing right
             dc.DrawEllipse(baseBrush, outlinePen, new Point(headX, headY), 6.5 * scale, 5.5 * scale);
 
-            // Ears - Round on top
-            dc.DrawEllipse(baseBrush, outlinePen, new Point(headX - 3 * scale, headY - 4 * scale), 2 * scale, 2 * scale);
-            dc.DrawEllipse(baseBrush, outlinePen, new Point(headX + 3 * scale, headY - 4 * scale), 2 * scale, 2 * scale);
+            // Ears - Round on top, wiggle when happy/running
+            var earWiggle = (state == PetState.Happy || state == PetState.Running)
+                ? Math.Sin(frame * Math.PI) * 0.8
+                : 0;
+            dc.DrawEllipse(baseBrush, outlinePen, new Point(headX - 3 * scale, headY - 4 * scale - earWiggle * scale), 2 * scale, 2 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen, new Point(headX + 3 * scale, headY - 4 * scale + earWiggle * scale), 2 * scale, 2 * scale);
 
             // Snout - lighter
             dc.DrawEllipse(accentBrush, null, new Point(headX + 2 * scale, headY + 1 * scale), 2.5 * scale, 1.8 * scale);
@@ -493,8 +496,8 @@ namespace VSPets.Animation
             dc.DrawEllipse(eyeBrush, null, new Point(headX + 1 * scale, headY - 1 * scale), 0.8 * scale, 0.8 * scale);
             dc.DrawEllipse(eyeBrush, null, new Point(headX + 4 * scale, headY - 1 * scale), 0.8 * scale, 0.8 * scale);
 
-            // Tiny Tail
-            dc.DrawEllipse(baseBrush, outlinePen, new Point(5 * scale, bodyY), 1.5 * scale, 1.5 * scale);
+            // Tiny nub tail (bears have almost no tail)
+            dc.DrawEllipse(baseBrush, outlinePen, new Point(5 * scale, bodyY - 1 * scale), 1.5 * scale, 1.2 * scale);
         }
 
         private void DrawAxolotl(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
@@ -688,21 +691,17 @@ namespace VSPets.Animation
             }
             else
             {
-                // Big round sparkly eyes
-                // Eye whites
-                dc.DrawEllipse(whiteBrush, null, new Point(5 * scale, (headY - 0.5 * scale)), 2.8 * scale, 2.8 * scale);
-                dc.DrawEllipse(whiteBrush, null, new Point(11 * scale, (headY - 0.5 * scale)), 2.8 * scale, 2.8 * scale);
+                // Eye whites (sized to match slit pupils)
+                dc.DrawEllipse(whiteBrush, null, new Point(5 * scale, (headY - 0.5 * scale)), 2.2 * scale, 2.2 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point(11 * scale, (headY - 0.5 * scale)), 2.2 * scale, 2.2 * scale);
 
-                // Pupils (big and cute)
-                dc.DrawEllipse(eyeBrush, null, new Point(5.3 * scale, (headY - 0.3 * scale)), 2 * scale, 2.2 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(10.7 * scale, (headY - 0.3 * scale)), 2 * scale, 2.2 * scale);
+                // Slit pupils (narrow vertical, distinctly feline)
+                dc.DrawEllipse(eyeBrush, null, new Point(5.3 * scale, (headY - 0.3 * scale)), 0.8 * scale, 2.0 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(10.7 * scale, (headY - 0.3 * scale)), 0.8 * scale, 2.0 * scale);
 
-                // Sparkle highlights (makes them look alive and cute)
-                dc.DrawEllipse(highlightBrush, null, new Point(4.3 * scale, (headY - 1.3 * scale)), 0.8 * scale, 0.8 * scale);
-                dc.DrawEllipse(highlightBrush, null, new Point(9.7 * scale, (headY - 1.3 * scale)), 0.8 * scale, 0.8 * scale);
-                // Smaller secondary highlight
-                dc.DrawEllipse(highlightBrush, null, new Point(5.8 * scale, (headY + 0.5 * scale)), 0.4 * scale, 0.4 * scale);
-                dc.DrawEllipse(highlightBrush, null, new Point(11.2 * scale, (headY + 0.5 * scale)), 0.4 * scale, 0.4 * scale);
+                // Sparkle highlights
+                dc.DrawEllipse(highlightBrush, null, new Point(4.3 * scale, (headY - 1.3 * scale)), 0.6 * scale, 0.6 * scale);
+                dc.DrawEllipse(highlightBrush, null, new Point(9.7 * scale, (headY - 1.3 * scale)), 0.6 * scale, 0.6 * scale);
             }
         }
 
@@ -997,6 +996,19 @@ namespace VSPets.Animation
                 dc.DrawLine(mouthPen, new Point(0 * scale, (headY + 3 * scale)), new Point(1.5 * scale, (headY + 4 * scale)));
                 dc.DrawLine(mouthPen, new Point(1.5 * scale, (headY + 4 * scale)), new Point(3 * scale, (headY + 3 * scale)));
             }
+            else if (state == PetState.Running || state == PetState.Chasing)
+            {
+                // Panting open mouth with tongue
+                Brush tongueBrush = CreateBrush(Color.FromRgb(255, 130, 150));
+                dc.DrawEllipse(tongueBrush, null, new Point(1.5 * scale, (headY + 4.5 * scale)), 1.5 * scale, 1.8 * scale);
+                dc.DrawLine(mouthPen, new Point(0 * scale, (headY + 3 * scale)), new Point(1.5 * scale, (headY + 4 * scale)));
+                dc.DrawLine(mouthPen, new Point(1.5 * scale, (headY + 4 * scale)), new Point(3 * scale, (headY + 3 * scale)));
+            }
+            else if (state != PetState.Sleeping)
+            {
+                // Neutral straight mouth at rest
+                dc.DrawLine(mouthPen, new Point(0.5 * scale, (headY + 3.5 * scale)), new Point(2.5 * scale, (headY + 3.5 * scale)));
+            }
 
             // Super fluffy tail with white tip
             DrawCuteFoxTail(dc, baseBrush, whiteBrush, scale, bodyY, state, frame);
@@ -1052,8 +1064,9 @@ namespace VSPets.Animation
                 // Big sparkly amber eyes
                 dc.DrawEllipse(amberBrush, null, new Point(4.5 * scale, (headY - 0.5 * scale)), 2.5 * scale, 2.5 * scale);
                 dc.DrawEllipse(amberBrush, null, new Point(9.5 * scale, (headY - 0.5 * scale)), 2.5 * scale, 2.5 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(4.8 * scale, (headY - 0.2 * scale)), 1.5 * scale, 1.8 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(9.2 * scale, (headY - 0.2 * scale)), 1.5 * scale, 1.8 * scale);
+                // Sly narrowed pupils (alert, cunning fox look)
+                dc.DrawEllipse(eyeBrush, null, new Point(4.8 * scale, (headY - 0.2 * scale)), 1.5 * scale, 1.2 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(9.2 * scale, (headY - 0.2 * scale)), 1.5 * scale, 1.2 * scale);
                 // Sparkle highlights
                 dc.DrawEllipse(whiteBrush, null, new Point(3.8 * scale, (headY - 1.2 * scale)), 0.8 * scale, 0.8 * scale);
                 dc.DrawEllipse(whiteBrush, null, new Point(8.2 * scale, (headY - 1.2 * scale)), 0.8 * scale, 0.8 * scale);
@@ -1348,6 +1361,15 @@ namespace VSPets.Animation
                 new Point(16 * scale, bodyY - 2 * scale),
                 10 * scale, 8 * scale);
 
+            // Shell highlight (glossy shine)
+            Brush shellShineBrush = CreateBrush(Color.FromArgb(60,
+                (byte)Math.Min(255, baseColor.R + 80),
+                (byte)Math.Min(255, baseColor.G + 80),
+                (byte)Math.Min(255, baseColor.B + 80)));
+            dc.DrawEllipse(shellShineBrush, null,
+                new Point(13 * scale, bodyY - 5 * scale),
+                2.5 * scale, 1.5 * scale);
+
             // Shell pattern (hexagonal-ish segments)
             dc.DrawEllipse(shellPatternBrush, null,
                 new Point(16 * scale, bodyY - 4 * scale),
@@ -1367,9 +1389,12 @@ namespace VSPets.Animation
                 new Point(22 * scale, (21 - frontLegOffset) * scale),
                 3 * scale, 2.5 * scale);
 
-            // Head
+            // Head (with gentle nod when moving)
+            var turtleHeadBob = (state == PetState.Walking || state == PetState.Running)
+                ? Math.Sin(frame * Math.PI) * 0.7
+                : 0;
             var headX = 27 * scale;
-            var headY = bodyY + 1 * scale;
+            var headY = bodyY + 1 * scale + turtleHeadBob * scale;
             dc.DrawEllipse(baseBrush, outlinePen,
                 new Point(headX, headY),
                 4 * scale, 3.5 * scale);
@@ -1417,9 +1442,12 @@ namespace VSPets.Animation
 
             var bodyY = 18 * scale + bodyBob * scale;
 
-            // Fluffy tail (cotton ball)
+            // Fluffy cotton-ball tail (bobs when moving)
+            var bunnyTailBob = (state == PetState.Walking || state == PetState.Running || state == PetState.Happy)
+                ? Math.Abs(Math.Sin(frame * Math.PI)) * 2
+                : 0;
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(4 * scale, bodyY),
+                new Point(4 * scale, bodyY - bunnyTailBob * scale),
                 3 * scale, 3 * scale);
 
             // Chubby body
@@ -1440,9 +1468,12 @@ namespace VSPets.Animation
                 new Point(16 * scale, (23 - backLegOffset) * scale),
                 4 * scale, 2 * scale);
 
-            // Front paws (small)
+            // Front paws (small, both animated)
             dc.DrawEllipse(baseBrush, outlinePen,
                 new Point(20 * scale, (22 + frontLegOffset) * scale),
+                2 * scale, 2.5 * scale);
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(24 * scale, (22 - frontLegOffset) * scale),
                 2 * scale, 2.5 * scale);
 
             // Big round head
@@ -1451,20 +1482,23 @@ namespace VSPets.Animation
                 new Point(22 * scale, headY),
                 6 * scale, 5 * scale);
 
-            // Long ears - shorter to fit within bounds
+            // Long ears with sway when running/happy
+            var earSway = (state == PetState.Running || state == PetState.Happy)
+                ? Math.Sin(frame * Math.PI) * 1.5
+                : 0;
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(19 * scale, headY - 4 * scale),
+                new Point((19 + earSway) * scale, headY - 4 * scale),
                 1.8 * scale, 4.5 * scale);
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(24 * scale, headY - 3.5 * scale),
+                new Point((24 - earSway) * scale, headY - 3.5 * scale),
                 1.8 * scale, 4.5 * scale);
 
             // Inner ears (pink)
             dc.DrawEllipse(pinkBrush, null,
-                new Point(19 * scale, headY - 4 * scale),
+                new Point((19 + earSway) * scale, headY - 4 * scale),
                 0.9 * scale, 3 * scale);
             dc.DrawEllipse(pinkBrush, null,
-                new Point(24 * scale, headY - 3.5 * scale),
+                new Point((24 - earSway) * scale, headY - 3.5 * scale),
                 0.9 * scale, 3 * scale);
 
             // Big cute eyes
@@ -1524,13 +1558,27 @@ namespace VSPets.Animation
 
             var bodyY = 16 * scale + bodyBob * scale;
 
-            // Striped tail
-            for (var i = 0; i < 5; i++)
+            // Striped tail (swishing Bezier with alternating stripes)
+            var raccoonWag = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 5
+                           : (state == PetState.Walking || state == PetState.Running) ? Math.Sin(frame * Math.PI * 0.5) * 2.5
+                           : Math.Sin(frame * Math.PI * 0.2) * 1;
+            var tailPen = new Pen(baseBrush, 5 * scale) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            tailPen.Freeze();
+            var darkTailPen = new Pen(darkBrush, 5 * scale) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            darkTailPen.Freeze();
+            // Build tail path
+            for (var stripe = 0; stripe < 5; stripe++)
             {
-                Brush stripeBrush = i % 2 == 0 ? baseBrush : darkBrush;
-                dc.DrawEllipse(stripeBrush, null,
-                    new Point((3 + i * 1.5) * scale, bodyY - 5 * scale + i * 0.5 * scale),
-                    2 * scale, 2.5 * scale);
+                var stripeT0 = stripe / 5.0;
+                var stripeT1 = (stripe + 1) / 5.0;
+                // Bezier control points for the full tail arc
+                // Base: (26*s, bodyY) → curves to (32*s, bodyY-10*s + wag)
+                var p0x = (26 - stripeT0 * 8) * scale;
+                var p0y = bodyY - stripeT0 * 18 * scale + raccoonWag * stripeT0 * scale;
+                var p1x = (26 - stripeT1 * 8) * scale;
+                var p1y = bodyY - stripeT1 * 18 * scale + raccoonWag * stripeT1 * scale;
+                Pen stripePen = stripe % 2 == 0 ? tailPen : darkTailPen;
+                dc.DrawLine(stripePen, new Point(p0x, p0y), new Point(p1x, p1y));
             }
 
             // Chubby body
@@ -1709,19 +1757,22 @@ namespace VSPets.Animation
                 new Point(headX + 4 * scale, headY + 2 * scale),
                 5 * scale, 3 * scale);
 
-            // Tiny arms (the iconic feature!) - TWO tiny arms, one slightly behind
+            // Tiny arms (the iconic feature!) - TWO tiny arms, swing during walk/run
+            var armSwing = (state == PetState.Walking || state == PetState.Running || state == PetState.Happy)
+                ? Math.Sin(frame * Math.PI) * 1.5
+                : 0;
             var armY = bodyY - 1 * scale + frontLegOffset * 0.2 * scale;
             // Back arm (smaller, partially hidden)
             dc.DrawEllipse(baseBrush, null,
-                new Point(20 * scale, armY + 0.5 * scale),
+                new Point(20 * scale, armY + 0.5 * scale + armSwing * scale),
                 1 * scale, 1.8 * scale);
             // Front arm
             dc.DrawEllipse(baseBrush, outlinePen,
-                new Point(21 * scale, armY),
+                new Point(21 * scale, armY - armSwing * scale),
                 1.2 * scale, 2 * scale);
             // Tiny hand
             dc.DrawEllipse(baseBrush, null,
-                new Point(21.5 * scale, armY + 2 * scale),
+                new Point(21.5 * scale, armY + 2 * scale - armSwing * scale),
                 0.8 * scale, 0.8 * scale);
 
             // Teeth (jagged)
@@ -1771,7 +1822,7 @@ namespace VSPets.Animation
                     (byte)Math.Max(0, baseColor.G - 40),
                     (byte)Math.Max(0, baseColor.B - 40))), 1.2 * scale);
                 browPen.Freeze();
-                dc.DrawLine(browPen, new Point(headX * scale, headY - 2 * scale), new Point(headX + 4 * scale, headY - 2.5 * scale));
+                dc.DrawLine(browPen, new Point(headX, headY - 2 * scale), new Point(headX + 4 * scale, headY - 2.5 * scale));
             }
 
 
@@ -1792,25 +1843,6 @@ namespace VSPets.Animation
             (var frontLegOffset, var backLegOffset, var bodyBob) = GetLegPositions(state, frame);
 
             var bodyY = 15 * scale + bodyBob * scale;
-
-            // Fluffy tail (bushy, pointing down/back)
-            var tailGeometry = new StreamGeometry();
-            using (StreamGeometryContext ctx = tailGeometry.Open())
-            {
-                ctx.BeginFigure(new Point(26 * scale, bodyY - 2 * scale), true, true);
-                ctx.BezierTo(
-                    new Point(30 * scale, bodyY + 2 * scale),
-                    new Point(31 * scale, bodyY + 8 * scale),
-                    new Point(28 * scale, bodyY + 12 * scale),
-                    true, true);
-                ctx.BezierTo(
-                    new Point(26 * scale, bodyY + 10 * scale),
-                    new Point(27 * scale, bodyY + 4 * scale),
-                    new Point(24 * scale, bodyY),
-                    true, true);
-            }
-            tailGeometry.Freeze();
-            dc.DrawGeometry(baseBrush, outlinePen, tailGeometry);
 
             // Body (lean and muscular)
             dc.DrawEllipse(baseBrush, outlinePen,
@@ -1923,6 +1955,35 @@ namespace VSPets.Animation
             var mouthPen = new Pen(eyeBrush, 0.5 * scale);
             mouthPen.Freeze();
             dc.DrawLine(mouthPen, new Point(-0.5 * scale, headY + 2.5 * scale), new Point(1 * scale, headY + 3.5 * scale));
+
+            // Fluffy tail (drawn last so it appears above the body)
+            DrawWolfTail(dc, baseBrush, outlinePen, scale, bodyY, state, frame);
+        }
+
+        private void DrawWolfTail(DrawingContext dc, Brush baseBrush, Pen outlinePen, double scale, double bodyY, PetState state, int frame)
+        {
+            var wagAmount = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 6
+                          : (state == PetState.Walking || state == PetState.Running) ? Math.Sin(frame * Math.PI * 0.5) * 3
+                          : Math.Sin(frame * Math.PI * 0.2) * 1;
+
+            var tailGeometry = new StreamGeometry();
+            using (StreamGeometryContext ctx = tailGeometry.Open())
+            {
+                // Base of tail at the back of the body, curves upward and back
+                ctx.BeginFigure(new Point(24 * scale, bodyY - 1 * scale), true, true);
+                ctx.BezierTo(
+                    new Point(28 * scale, bodyY - 4 * scale + wagAmount * 0.3 * scale),
+                    new Point(31 * scale, bodyY - 9 * scale + wagAmount * 0.7 * scale),
+                    new Point(29 * scale, bodyY - 13 * scale + wagAmount * scale),
+                    true, true);
+                ctx.BezierTo(
+                    new Point(27 * scale, bodyY - 11 * scale + wagAmount * 0.7 * scale),
+                    new Point(26 * scale, bodyY - 6 * scale + wagAmount * 0.3 * scale),
+                    new Point(22 * scale, bodyY - 1 * scale),
+                    true, true);
+            }
+            tailGeometry.Freeze();
+            dc.DrawGeometry(baseBrush, outlinePen, tailGeometry);
         }
 
         private void DrawGenericPet(DrawingContext dc, int size, Color baseColor, PetState state, int frame)
