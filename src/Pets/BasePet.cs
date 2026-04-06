@@ -1,6 +1,7 @@
 using System.Windows;
 using VSPets.Animation;
 using VSPets.Models;
+using VSPets.Options;
 
 namespace VSPets.Pets
 {
@@ -68,18 +69,6 @@ namespace VSPets.Pets
         public abstract PetType PetType { get; }
         public PetColor Color { get; }
         public PetSize Size { get; set; } = PetSize.Small;
-
-        private PetSpeed? _speedSetting;
-
-        /// <summary>
-        /// Gets or sets the pet's movement speed.
-        /// When not explicitly set, falls back to <see cref="NaturalSpeed"/>.
-        /// </summary>
-        public PetSpeed SpeedSetting
-        {
-            get => _speedSetting ?? NaturalSpeed;
-            set => _speedSetting = value;
-        }
 
         /// <summary>
         /// Gets the natural, characteristic speed of this pet type.
@@ -537,12 +526,31 @@ namespace VSPets.Pets
 
         private double GetSpeedMultiplier()
         {
-            return SpeedSetting switch
+            return NaturalSpeedFactor(NaturalSpeed) * GlobalSpeedFactor();
+        }
+
+        private static double NaturalSpeedFactor(PetSpeed speed) => speed switch
+        {
+            PetSpeed.Lazy => 0.3,
+            PetSpeed.Slow => 0.6,
+            PetSpeed.Normal => 1.0,
+            PetSpeed.Active => 1.4,
+            PetSpeed.Hyper => 2.0,
+            _ => 1.0
+        };
+
+        /// <summary>
+        /// Returns a multiplier based on the global Pet Speed setting.
+        /// Normal = 1.0 (no change), Lazy = 0.5 (half speed), Hyper = 2.0 (double speed).
+        /// </summary>
+        private static double GlobalSpeedFactor()
+        {
+            return General.Instance.PetSpeed switch
             {
-                PetSpeed.Lazy => 0.3,
-                PetSpeed.Slow => 0.6,
+                PetSpeed.Lazy => 0.5,
+                PetSpeed.Slow => 0.75,
                 PetSpeed.Normal => 1.0,
-                PetSpeed.Active => 1.4,
+                PetSpeed.Active => 1.5,
                 PetSpeed.Hyper => 2.0,
                 _ => 1.0
             };

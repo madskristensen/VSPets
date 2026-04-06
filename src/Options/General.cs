@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using VSPets.Models;
 
 namespace VSPets.Options
 {
@@ -25,10 +26,10 @@ namespace VSPets.Options
 
         [Category("Behavior")]
         [DisplayName("Pet Speed")]
-        [Description("How fast the pets move (Lazy, Normal, Energetic)")]
-        [DefaultValue(SpeedOption.Normal)]
+        [Description("How fast the pets move relative to each animal's natural speed (Lazy, Slow, Normal, Active, Hyper)")]
+        [DefaultValue(PetSpeed.Normal)]
         [TypeConverter(typeof(EnumConverter))]
-        public SpeedOption PetSpeed { get; set; } = SpeedOption.Normal;
+        public PetSpeed PetSpeed { get; set; } = PetSpeed.Normal;
 
         [Category("Behavior")]
         [DisplayName("Enable Idle Animations")]
@@ -51,15 +52,5 @@ namespace VSPets.Options
         [Browsable(false)]
         [DefaultValue(0)]
         public int RatingRequests { get; set; }
-    }
-
-    /// <summary>
-    /// Speed options for pets.
-    /// </summary>
-    public enum SpeedOption
-    {
-        Lazy,
-        Normal,
-        Energetic
     }
 }

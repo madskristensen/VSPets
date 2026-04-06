@@ -35,11 +35,6 @@ namespace VSPets.Pets
         PetSize Size { get; set; }
 
         /// <summary>
-        /// Speed behavior preset.
-        /// </summary>
-        PetSpeed SpeedSetting { get; set; }
-
-        /// <summary>
         /// The natural, characteristic speed for this pet type.
         /// </summary>
         PetSpeed NaturalSpeed { get; }
