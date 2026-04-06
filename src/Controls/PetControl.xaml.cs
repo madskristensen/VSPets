@@ -6,6 +6,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Microsoft.VisualStudio.Imaging;
 using VSPets.Animation;
 using VSPets.Models;
 using VSPets.Pets;
@@ -74,6 +75,13 @@ namespace VSPets.Controls
         public PetControl()
         {
             InitializeComponent();
+
+            ThemedContextMenuHelper.ApplyVsTheme(ContextMenu);
+
+            MenuAddPet.Icon = ThemedContextMenuHelper.CreateMenuIcon(KnownMonikers.AddItem);
+            MenuRename.Icon = ThemedContextMenuHelper.CreateMenuIcon(KnownMonikers.Rename);
+            MenuRemove.Icon = ThemedContextMenuHelper.CreateMenuIcon(KnownMonikers.Cancel);
+            MenuSettings.Icon = ThemedContextMenuHelper.CreateMenuIcon(KnownMonikers.Settings);
 
             // Set up transforms - flip for direction, breathing for idle animation
             _flipTransform = new ScaleTransform(1.0, 1.0);
