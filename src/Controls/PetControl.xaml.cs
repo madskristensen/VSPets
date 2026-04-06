@@ -617,13 +617,8 @@ namespace VSPets.Controls
             try
             {
                 var dialog = new PetSelectionDialog();
-                // Ensure dialog is modal to VS
-                var window = new System.Windows.Interop.WindowInteropHelper(dialog)
-                {
-                    Owner = System.Diagnostics.Process.GetCurrentProcess().MainWindowHandle
-                };
 
-                if (dialog.ShowDialog() == true)
+                if (dialog.ShowModal() == true)
                 {
                     await Services.PetManager.Instance.AddPetAsync(dialog.SelectedPetType, dialog.SelectedColor);
                 }

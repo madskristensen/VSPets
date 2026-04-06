@@ -8,7 +8,7 @@
         xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
         toolkit:Themes.UseVsTheme="True"
         mc:Ignorable="d"
-        Title="Add Pet" Height="300" Width="350" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
+        Title="Add Pet" Height="300" Width="350" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
     <platform:DialogWindow.Resources>
         <ResourceDictionary>
