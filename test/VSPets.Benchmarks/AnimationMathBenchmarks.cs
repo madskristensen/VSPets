@@ -1,8 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using BenchmarkDotNet.Attributes;
 using Microsoft.VSDiagnostics;
-using VSPets.Animation;
 using VSPets.Models;
 
 namespace VSPets.Benchmarks;
@@ -17,41 +19,63 @@ public class AnimationMathBenchmarks
 {
     // ----- Leg position math (called once per Draw* method per pet per frame) -----
 
+    // Precomputed lookup tables — mirrors ProceduralSpriteRenderer's static tables
+    private static readonly (double front, double back, double bob)[] _walkPositions = PrecomputeWalkPositions(2, 0.5);
+    private static readonly (double front, double back, double bob)[] _runPositions = PrecomputeWalkPositions(3, 1.5);
+    private static readonly (double, double, double)[] _breathPositions = PrecomputeBreathPositions(0.3, useAbs: false);
+    private static readonly (double, double, double)[] _happyPositions = PrecomputeBreathPositions(2, useAbs: true);
+
+    private static (double, double, double)[] PrecomputeWalkPositions(double legScale, double bobScale)
+    {
+        var results = new (double, double, double)[4];
+        for (int f = 0; f < 4; f++)
+        {
+            var phase = f * (Math.PI / 2);
+            results[f] = (
+                Math.Sin(phase) * legScale,
+                Math.Sin(phase + Math.PI) * legScale,
+                Math.Abs(Math.Sin(phase * 2)) * bobScale);
+        }
+        return results;
+    }
+
+    private static (double, double, double)[] PrecomputeBreathPositions(double scale, bool useAbs)
+    {
+        var results = new (double, double, double)[2];
+        for (int f = 0; f < 2; f++)
+        {
+            var phase = f * Math.PI;
+            var val = useAbs ? Math.Abs(Math.Sin(phase)) * scale : Math.Sin(phase) * scale;
+            results[f] = (0, 0, val);
+        }
+        return results;
+    }
+
     [Params(PetState.Idle, PetState.Walking, PetState.Running, PetState.Happy)]
     public PetState State { get; set; }
 
     [Benchmark(Description = "GetLegPositions (per-frame math)")]
     public (double, double, double) GetLegPositions()
     {
-        // Mirrors ProceduralSpriteRenderer.GetLegPositions — private, so reproduced here
+        // Mirrors ProceduralSpriteRenderer.GetLegPositions — uses precomputed lookup tables
         int frame = 2; // Mid-cycle frame
         switch (State)
         {
             case PetState.Walking:
             case PetState.Exiting:
             case PetState.Entering:
-                var walkPhase = (frame % 4) * (Math.PI / 2);
-                return (
-                    Math.Sin(walkPhase) * 2,
-                    Math.Sin(walkPhase + Math.PI) * 2,
-                    Math.Abs(Math.Sin(walkPhase * 2)) * 0.5);
+                return _walkPositions[frame % 4];
 
             case PetState.Running:
             case PetState.Chasing:
-                var runPhase = (frame % 4) * (Math.PI / 2);
-                return (
-                    Math.Sin(runPhase) * 3,
-                    Math.Sin(runPhase + Math.PI) * 3,
-                    Math.Abs(Math.Sin(runPhase * 2)) * 1.5);
+                return _runPositions[frame % 4];
 
             case PetState.Idle:
             case PetState.Sleeping:
-                var breathPhase = (frame % 2) * Math.PI;
-                return (0, 0, Math.Sin(breathPhase) * 0.3);
+                return _breathPositions[frame % 2];
 
             case PetState.Happy:
-                var happyPhase = (frame % 2) * Math.PI;
-                return (0, 0, Math.Abs(Math.Sin(happyPhase)) * 2);
+                return _happyPositions[frame % 2];
 
             default:
                 return (0, 0, 0);

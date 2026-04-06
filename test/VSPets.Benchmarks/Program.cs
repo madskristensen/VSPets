@@ -1,4 +1,4 @@
-using BenchmarkDotNet.Reports;
+using System;
 using BenchmarkDotNet.Running;
 
 namespace VSPets.Benchmarks
@@ -8,7 +8,7 @@ namespace VSPets.Benchmarks
         [STAThread]
         static void Main(string[] args)
         {
-            Summary[] _ = BenchmarkRunner.Run(typeof(Program).Assembly);
+            BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
         }
     }
 }

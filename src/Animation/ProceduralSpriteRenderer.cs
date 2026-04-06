@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,43 @@ namespace VSPets.Animation
 
         // Track sprites currently being rendered in background to avoid duplicate work
         private readonly ConcurrentDictionary<string, Task<BitmapSource>> _pendingRenders = new();
+
+        // Reusable frozen Brush/Pen caches — these objects are immutable once frozen
+        private readonly Dictionary<Color, Brush> _brushCache = new();
+        private readonly Dictionary<(Color color, double thickness), Pen> _penCache = new();
+
+        // Precomputed leg-position lookup tables — frame counts are tiny (2 or 4),
+        // so every Math.Sin result is known at compile time.
+        private static readonly (double front, double back, double bob)[] _walkPositions = PrecomputeWalkPositions(2, 0.5);
+        private static readonly (double front, double back, double bob)[] _runPositions = PrecomputeWalkPositions(3, 1.5);
+        private static readonly (double, double, double)[] _breathPositions = PrecomputeBreathPositions(0.3, useAbs: false);
+        private static readonly (double, double, double)[] _happyPositions = PrecomputeBreathPositions(2, useAbs: true);
+
+        private static (double, double, double)[] PrecomputeWalkPositions(double legScale, double bobScale)
+        {
+            var results = new (double, double, double)[4];
+            for (int f = 0; f < 4; f++)
+            {
+                var phase = f * (Math.PI / 2);
+                results[f] = (
+                    Math.Sin(phase) * legScale,
+                    Math.Sin(phase + Math.PI) * legScale,
+                    Math.Abs(Math.Sin(phase * 2)) * bobScale);
+            }
+            return results;
+        }
+
+        private static (double, double, double)[] PrecomputeBreathPositions(double scale, bool useAbs)
+        {
+            var results = new (double, double, double)[2];
+            for (int f = 0; f < 2; f++)
+            {
+                var phase = f * Math.PI;
+                var val = useAbs ? Math.Abs(Math.Sin(phase)) * scale : Math.Sin(phase) * scale;
+                results[f] = (0, 0, val);
+            }
+            return results;
+        }
 
         /// <summary>
         /// Gets the singleton instance.
@@ -189,6 +227,8 @@ namespace VSPets.Animation
                 _frameCache.Clear();
                 _accessOrder.Clear();
                 _accessCounter = 0;
+                _brushCache.Clear();
+                _penCache.Clear();
             }
         }
 
@@ -426,16 +466,36 @@ namespace VSPets.Animation
                 return null;
             }
 
-            var pen = new Pen(CreateBrush(outlineColor.Value), thickness);
-            pen.Freeze();
-            return pen;
+            return GetOrCreatePen(outlineColor.Value, thickness);
         }
 
         private Brush CreateBrush(Color color)
         {
+            if (_brushCache.TryGetValue(color, out Brush cached))
+                return cached;
+
             var brush = new SolidColorBrush(color);
             brush.Freeze();
+            _brushCache[color] = brush;
             return brush;
+        }
+
+        private Pen GetOrCreatePen(Color color, double thickness, PenLineCap startCap = PenLineCap.Flat, PenLineCap endCap = PenLineCap.Flat)
+        {
+            var key = (color, thickness);
+            if (_penCache.TryGetValue(key, out Pen cached)
+                && cached.StartLineCap == startCap
+                && cached.EndLineCap == endCap)
+                return cached;
+
+            var pen = new Pen(CreateBrush(color), thickness)
+            {
+                StartLineCap = startCap,
+                EndLineCap = endCap
+            };
+            pen.Freeze();
+            _penCache[key] = pen;
+            return pen;
         }
 
         #endregion
@@ -637,8 +697,7 @@ namespace VSPets.Animation
                 1.2 * scale, 0.8 * scale);
 
             // Little mouth (w shape when happy)
-            var mouthPen = new Pen(eyeBrush, 0.6 * scale);
-            mouthPen.Freeze();
+            var mouthPen = GetOrCreatePen(eyeColor, 0.6 * scale);
             if (state == PetState.Happy)
             {
                 // Happy "w" mouth
@@ -654,8 +713,7 @@ namespace VSPets.Animation
             }
 
             // Whiskers (shorter, cuter)
-            var whiskerPen = new Pen(CreateBrush(Color.FromRgb(100, 100, 100)), 0.4 * scale);
-            whiskerPen.Freeze();
+            var whiskerPen = GetOrCreatePen(Color.FromRgb(100, 100, 100), 0.4 * scale);
             dc.DrawLine(whiskerPen, new Point(2 * scale, (headY + 1 * scale)), new Point(5 * scale, (headY + 1.5 * scale)));
             dc.DrawLine(whiskerPen, new Point(2.5 * scale, (headY + 2.5 * scale)), new Point(5.5 * scale, (headY + 2.5 * scale)));
             dc.DrawLine(whiskerPen, new Point(11 * scale, (headY + 1.5 * scale)), new Point(14 * scale, (headY + 1 * scale)));
@@ -670,11 +728,11 @@ namespace VSPets.Animation
             Brush whiteBrush = CreateBrush(Colors.White);
             Brush highlightBrush = CreateBrush(Colors.White);
 
+            var eyeColor = ((SolidColorBrush)eyeBrush).Color;
             if (state == PetState.Sleeping)
             {
                 // Peaceful closed eyes (curved lines)
-                var eyePen = new Pen(eyeBrush, 1 * scale);
-                eyePen.Freeze();
+                var eyePen = GetOrCreatePen(eyeColor, 1 * scale);
                 // Draw curved lines for closed eyes
                 dc.DrawArc(eyePen, new Point(5 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
                 dc.DrawArc(eyePen, new Point(11 * scale, (headY - 0.5 * scale)), 1.5 * scale, 0, 180);
@@ -682,8 +740,7 @@ namespace VSPets.Animation
             else if (state == PetState.Happy)
             {
                 // Super happy sparkly eyes (^ ^)
-                var eyePen = new Pen(eyeBrush, 1.2 * scale);
-                eyePen.Freeze();
+                var eyePen = GetOrCreatePen(eyeColor, 1.2 * scale);
                 dc.DrawLine(eyePen, new Point(3.5 * scale, (headY + 0.5 * scale)), new Point(5 * scale, (headY - 2 * scale)));
                 dc.DrawLine(eyePen, new Point(5 * scale, (headY - 2 * scale)), new Point(6.5 * scale, (headY + 0.5 * scale)));
                 dc.DrawLine(eyePen, new Point(9.5 * scale, (headY + 0.5 * scale)), new Point(11 * scale, (headY - 2 * scale)));
@@ -710,12 +767,8 @@ namespace VSPets.Animation
             var tailWag = state == PetState.Happy ? Math.Sin(frame * Math.PI) * 4 : Math.Sin(frame * Math.PI * 0.3) * 1;
 
             // Fluffy curved tail
-            var pen = new Pen(brush, 3.5 * scale)
-            {
-                StartLineCap = PenLineCap.Round,
-                EndLineCap = PenLineCap.Round
-            };
-            pen.Freeze();
+            var brushColor = ((SolidColorBrush)brush).Color;
+            var pen = GetOrCreatePen(brushColor, 3.5 * scale, PenLineCap.Round, PenLineCap.Round);
 
             var geometry = new StreamGeometry();
             using (StreamGeometryContext ctx = geometry.Open())
@@ -2015,34 +2068,18 @@ namespace VSPets.Animation
                 case PetState.Walking:
                 case PetState.Exiting:
                 case PetState.Entering:
-                    // 4-frame walk cycle
-                    var walkPhase = (frame % 4) * (Math.PI / 2);
-                    return (
-                        Math.Sin(walkPhase) * 2,           // Front legs
-                        Math.Sin(walkPhase + Math.PI) * 2, // Back legs (opposite)
-                        Math.Abs(Math.Sin(walkPhase * 2)) * 0.5  // Small body bob
-                    );
+                    return _walkPositions[frame % 4];
 
                 case PetState.Running:
                 case PetState.Chasing:
-                    // Faster, more exaggerated
-                    var runPhase = (frame % 4) * (Math.PI / 2);
-                    return (
-                        Math.Sin(runPhase) * 3,
-                        Math.Sin(runPhase + Math.PI) * 3,
-                        Math.Abs(Math.Sin(runPhase * 2)) * 1.5
-                    );
+                    return _runPositions[frame % 4];
 
                 case PetState.Idle:
                 case PetState.Sleeping:
-                    // Subtle breathing bob
-                    var breathPhase = (frame % 2) * Math.PI;
-                    return (0, 0, Math.Sin(breathPhase) * 0.3);
+                    return _breathPositions[frame % 2];
 
                 case PetState.Happy:
-                    // Excited bouncing
-                    var happyPhase = (frame % 2) * Math.PI;
-                    return (0, 0, Math.Abs(Math.Sin(happyPhase)) * 2);
+                    return _happyPositions[frame % 2];
 
                 default:
                     return (0, 0, 0);
