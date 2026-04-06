@@ -54,6 +54,27 @@ namespace VSPets.Pets
     /// </summary>
     public class Clippy(string name = null) : BasePet(PetColor.Original, name ?? "Clippy")
     {
+        private static readonly Random _tipRandom = new();
+
+        private static readonly string[] _clippyBehaviors =
+        [
+            "tip", "wave", "bounce", "blink", "lean", "wiggle_eyebrows"
+        ];
+
+        private static readonly string[] _codingTips =
+        [
+            "Ctrl+. opens Quick Actions! 💡",
+            "Try Ctrl+Shift+P for commands 📎",
+            "Don't forget to commit! 💾",
+            "Have you written a test yet? 🧪",
+            "Psst… Ctrl+K, Ctrl+D formats code ✨",
+            "F12 goes to definition! 🔍",
+            "Remember to take a break! ☕",
+            "Ctrl+Shift+F finds in all files 📂",
+            "Alt+Enter is your friend! 🙌",
+            "It looks like you're writing a loop. Need help? 🔁",
+        ];
+
         public override PetType PetType => PetType.Clippy;
 
         public override string HelloMessage => "It looks like you're writing code. Would you like help? 📎";
@@ -68,6 +89,42 @@ namespace VSPets.Pets
         protected override string GenerateDefaultName()
         {
             return "Clippy";
+        }
+
+        /// <summary>
+        /// Clippy-specific idle behaviors instead of animal ones.
+        /// </summary>
+        public override string[] GetPossibleBehaviors()
+        {
+            return _clippyBehaviors;
+        }
+
+        protected override int GetBehaviorDuration(string behavior)
+        {
+            return behavior switch
+            {
+                "tip" => 3000,
+                "wave" => 1500,
+                "bounce" => 1000,
+                "blink" => 600,
+                "lean" => 2000,
+                "wiggle_eyebrows" => 1200,
+                _ => base.GetBehaviorDuration(behavior)
+            };
+        }
+
+        protected override string GetBehaviorSpeech(string behavior)
+        {
+            return behavior switch
+            {
+                "tip" => _codingTips[_tipRandom.Next(_codingTips.Length)],
+                "wave" => "👋",
+                "bounce" => "😄",
+                "blink" => null,
+                "lean" => "👀",
+                "wiggle_eyebrows" => "🧐",
+                _ => base.GetBehaviorSpeech(behavior)
+            };
         }
     }
 

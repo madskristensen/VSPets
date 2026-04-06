@@ -1165,88 +1165,138 @@ namespace VSPets.Animation
         {
             var scale = size / 32.0;
 
-            // Classic paperclip silver/gray color
-            Brush wireBrush = CreateBrush(Color.FromRgb(160, 165, 175));
-            Brush wireHighlight = CreateBrush(Color.FromRgb(200, 205, 215));
+            // Clippy's wire is lavender/periwinkle, not gray
+            Brush wireBrush = CreateBrush(Color.FromRgb(165, 160, 195));
+            Brush wireHighlight = CreateBrush(Color.FromRgb(200, 195, 225));
+            Brush wireShadow = CreateBrush(Color.FromRgb(130, 125, 160));
             Brush eyeBrush = CreateBrush(Colors.Black);
             Brush eyeWhiteBrush = CreateBrush(Colors.White);
 
-            var bodyBob = state == PetState.Walking || state == PetState.Running ? Math.Sin(frame * Math.PI) * 1.5 : 0;
+            // Animation offsets
+            var bodyBob = 0.0;
+            var bodyLean = 0.0;
+            if (state == PetState.Walking || state == PetState.Running ||
+                state == PetState.Exiting || state == PetState.Entering)
+            {
+                var speed = state == PetState.Running ? 1.5 : 1.0;
+                bodyBob = Math.Sin(frame * Math.PI) * 1.2 * speed;
+                bodyLean = Math.Sin(frame * Math.PI * 0.5) * 0.8;
+            }
+            else if (state == PetState.Happy)
+            {
+                bodyBob = frame == 0 ? -2.5 : -0.5;
+            }
+            else if (state == PetState.Dragging)
+            {
+                bodyLean = Math.Sin(frame * Math.PI) * 1.0;
+            }
 
-            // Wire pen for the paperclip body
-            var wirePen = new Pen(wireBrush, 3 * scale)
+            // Thick round wire pen — gives the tubular bent-wire look
+            var wirePen = new Pen(wireBrush, 3.2 * scale)
             {
                 StartLineCap = PenLineCap.Round,
-                EndLineCap = PenLineCap.Round
+                EndLineCap = PenLineCap.Round,
+                LineJoin = PenLineJoin.Round
             };
             wirePen.Freeze();
 
-            // Highlight pen
-            var highlightPen = new Pen(wireHighlight, 1.5 * scale)
+            // Highlight along the left edge for metallic sheen
+            var highlightPen = new Pen(wireHighlight, 1.4 * scale)
             {
                 StartLineCap = PenLineCap.Round,
                 EndLineCap = PenLineCap.Round
             };
             highlightPen.Freeze();
 
-            // Draw classic paperclip shape - single bent wire
-            // The shape is like: bottom straight up, curve at top, back down, small curve, back up a bit
-            var clipGeometry = new StreamGeometry();
-            using (StreamGeometryContext ctx = clipGeometry.Open())
+            // Shadow on right edge
+            var shadowPen = new Pen(wireShadow, 1.0 * scale)
             {
-                // Start at bottom-left leg
-                ctx.BeginFigure(new Point(10 * scale, (28 + bodyBob) * scale), false, false);
+                StartLineCap = PenLineCap.Round,
+                EndLineCap = PenLineCap.Round
+            };
+            shadowPen.Freeze();
 
-                // Go up the left side
-                ctx.LineTo(new Point(10 * scale, (10 + bodyBob) * scale), true, true);
+            // === WIRE SHAPE ===
+            // Clippy is a standard paperclip standing upright.
+            // Outer wire: up the left side, big curve over the top (the "head"),
+            //             down the right side, U-curve at the bottom.
+            // Inner wire: from the U-curve, back up partway inside.
 
-                // Curve around the top (big loop)
+            // Outer wire path
+            var outerGeo = new StreamGeometry();
+            using (StreamGeometryContext ctx = outerGeo.Open())
+            {
+                // Start at lower-left wire end (sticks out slightly left)
+                ctx.BeginFigure(new Point((8 + bodyLean) * scale, (28 + bodyBob) * scale), false, false);
+
+                // Up the left side of the clip
+                ctx.LineTo(new Point((8 + bodyLean * 0.5) * scale, (10 + bodyBob) * scale), true, true);
+
+                // Big curve over the top — this is the "head" loop
                 ctx.BezierTo(
-                    new Point(10 * scale, (4 + bodyBob) * scale),
-                    new Point(22 * scale, (4 + bodyBob) * scale),
-                    new Point(22 * scale, (10 + bodyBob) * scale),
+                    new Point((8 + bodyLean * 0.3) * scale, (2 + bodyBob) * scale),
+                    new Point((24 + bodyLean * 0.3) * scale, (2 + bodyBob) * scale),
+                    new Point((24 + bodyLean * 0.5) * scale, (10 + bodyBob) * scale),
                     true, true);
 
-                // Go down the right side
-                ctx.LineTo(new Point(22 * scale, (20 + bodyBob) * scale), true, true);
+                // Down the right side
+                ctx.LineTo(new Point((24 + bodyLean * 0.7) * scale, (24 + bodyBob) * scale), true, true);
 
-                // Small inner curve
+                // U-curve at the bottom
                 ctx.BezierTo(
-                    new Point(22 * scale, (24 + bodyBob) * scale),
-                    new Point(14 * scale, (24 + bodyBob) * scale),
-                    new Point(14 * scale, (20 + bodyBob) * scale),
+                    new Point((24 + bodyLean) * scale, (30 + bodyBob) * scale),
+                    new Point((14 + bodyLean) * scale, (30 + bodyBob) * scale),
+                    new Point((14 + bodyLean * 0.7) * scale, (24 + bodyBob) * scale),
                     true, true);
 
-                // Go back up a bit (inner part)
-                ctx.LineTo(new Point(14 * scale, (14 + bodyBob) * scale), true, true);
+                // Inner wire going back up partway
+                ctx.LineTo(new Point((14 + bodyLean * 0.4) * scale, (15 + bodyBob) * scale), true, true);
             }
-            clipGeometry.Freeze();
-            dc.DrawGeometry(null, wirePen, clipGeometry);
+            outerGeo.Freeze();
+            dc.DrawGeometry(null, wirePen, outerGeo);
 
-            // Draw highlight on left edge
-            dc.DrawLine(highlightPen,
-                new Point(9 * scale, (26 + bodyBob) * scale),
-                new Point(9 * scale, (12 + bodyBob) * scale));
+            // Highlight along the left edge
+            var hlGeo = new StreamGeometry();
+            using (StreamGeometryContext ctx = hlGeo.Open())
+            {
+                ctx.BeginFigure(new Point((7 + bodyLean) * scale, (26 + bodyBob) * scale), false, false);
+                ctx.LineTo(new Point((7 + bodyLean * 0.5) * scale, (12 + bodyBob) * scale), true, true);
+            }
+            hlGeo.Freeze();
+            dc.DrawGeometry(null, highlightPen, hlGeo);
 
-            // Big googly eyes - the signature Clippy look!
-            // Position eyes on the upper curve area
-            var eyeY = (8 + bodyBob) * scale;
-            var leftEyeX = 13 * scale;
-            var rightEyeX = 19 * scale;
+            // Shadow along the right outer edge
+            var shGeo = new StreamGeometry();
+            using (StreamGeometryContext ctx = shGeo.Open())
+            {
+                ctx.BeginFigure(new Point((25 + bodyLean * 0.7) * scale, (22 + bodyBob) * scale), false, false);
+                ctx.LineTo(new Point((25 + bodyLean) * scale, (12 + bodyBob) * scale), true, true);
+            }
+            shGeo.Freeze();
+            dc.DrawGeometry(null, shadowPen, shGeo);
 
-            // Large white eye backgrounds
-            dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX, eyeY), 3.5 * scale, 4 * scale);
-            dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX, eyeY), 3.5 * scale, 4 * scale);
+            // === EYES ===
+            // Positioned in the upper area between the top curve and the inner wire
+            var eyeY = (9 + bodyBob) * scale;
+            var leftEyeX = (13 + bodyLean * 0.4) * scale;
+            var rightEyeX = (19 + bodyLean * 0.4) * scale;
+            var eyeRadiusX = 3.2 * scale;
+            var eyeRadiusY = 3.6 * scale;
+
+            // White sclera (large, like in the reference)
+            dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX, eyeY), eyeRadiusX, eyeRadiusY);
+            dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX, eyeY), eyeRadiusX, eyeRadiusY);
 
             // Thin outline around eyes
-            var eyeOutlinePen = new Pen(CreateBrush(Color.FromRgb(100, 100, 110)), 0.5 * scale);
+            var eyeOutlinePen = new Pen(CreateBrush(Color.FromRgb(100, 95, 120)), 0.4 * scale);
             eyeOutlinePen.Freeze();
-            dc.DrawEllipse(null, eyeOutlinePen, new Point(leftEyeX, eyeY), 3.5 * scale, 4 * scale);
-            dc.DrawEllipse(null, eyeOutlinePen, new Point(rightEyeX, eyeY), 3.5 * scale, 4 * scale);
+            dc.DrawEllipse(null, eyeOutlinePen, new Point(leftEyeX, eyeY), eyeRadiusX, eyeRadiusY);
+            dc.DrawEllipse(null, eyeOutlinePen, new Point(rightEyeX, eyeY), eyeRadiusX, eyeRadiusY);
 
+            // === PUPILS (state-dependent) ===
             if (state == PetState.Happy)
             {
-                // Happy curved eyes
+                // Happy ^ ^ curved eyes
                 var eyePen = new Pen(eyeBrush, 1.5 * scale);
                 eyePen.Freeze();
                 dc.DrawArc(eyePen, new Point(leftEyeX, (eyeY - 0.5 * scale)), 2 * scale, 200, 140);
@@ -1259,25 +1309,90 @@ namespace VSPets.Animation
                 eyePen.Freeze();
                 dc.DrawLine(eyePen, new Point((leftEyeX - 2 * scale), eyeY), new Point((leftEyeX + 2 * scale), eyeY));
                 dc.DrawLine(eyePen, new Point((rightEyeX - 2 * scale), eyeY), new Point((rightEyeX + 2 * scale), eyeY));
+
+                // Zzz
+                var zzzBrush = CreateBrush(Color.FromRgb(120, 115, 150));
+                var zOffset = frame == 0 ? 0.0 : -1.0;
+                var formattedText = new FormattedText("z", System.Globalization.CultureInfo.InvariantCulture,
+                    FlowDirection.LeftToRight, new Typeface("Segoe UI"), 4 * scale, zzzBrush,
+                    VisualTreeHelper.GetDpi(new DrawingVisual()).PixelsPerDip);
+                dc.DrawText(formattedText, new Point(22 * scale, (zOffset + bodyBob) * scale));
+            }
+            else if (state == PetState.Dragging)
+            {
+                // Wide surprised pupils
+                dc.DrawEllipse(eyeBrush, null, new Point(leftEyeX, eyeY), 1.8 * scale, 2.2 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(rightEyeX, eyeY), 1.8 * scale, 2.2 * scale);
+                dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX - 0.5 * scale, eyeY - 0.8 * scale), 0.8 * scale, 0.8 * scale);
+                dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX - 0.5 * scale, eyeY - 0.8 * scale), 0.8 * scale, 0.8 * scale);
             }
             else
             {
-                // Normal big pupils - looking slightly to the side
-                var pupilOffsetX = 0.3 * scale;
-                var pupilOffsetY = 0.5 * scale;
-                dc.DrawEllipse(eyeBrush, null, new Point(leftEyeX + pupilOffsetX, eyeY + pupilOffsetY), 1.8 * scale, 2.2 * scale);
-                dc.DrawEllipse(eyeBrush, null, new Point(rightEyeX + pupilOffsetX, eyeY + pupilOffsetY), 1.8 * scale, 2.2 * scale);
+                // Animated pupils that look around
+                double pupilDriftX;
+                double pupilDriftY;
 
-                // Eye shine/sparkle
-                dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX - 0.5 * scale, eyeY - 1 * scale), 0.8 * scale, 0.8 * scale);
-                dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX - 0.5 * scale, eyeY - 1 * scale), 0.8 * scale, 0.8 * scale);
+                if (state == PetState.Idle)
+                {
+                    // Sweep left-right between frames
+                    pupilDriftX = (frame == 0 ? 0.8 : -0.6) * scale;
+                    pupilDriftY = 0.3 * scale;
+                }
+                else if (state == PetState.Walking || state == PetState.Exiting ||
+                         state == PetState.Entering)
+                {
+                    pupilDriftX = 1.0 * scale;
+                    pupilDriftY = 0.2 * scale;
+                }
+                else if (state == PetState.Running || state == PetState.Chasing)
+                {
+                    pupilDriftX = 1.2 * scale;
+                    pupilDriftY = 0.0;
+                }
+                else
+                {
+                    pupilDriftX = 0.2 * scale;
+                    pupilDriftY = 0.4 * scale;
+                }
+
+                // Large black pupils (like in the reference — they're quite big)
+                dc.DrawEllipse(eyeBrush, null, new Point(leftEyeX + pupilDriftX, eyeY + pupilDriftY), 1.8 * scale, 2.2 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point(rightEyeX + pupilDriftX, eyeY + pupilDriftY), 1.8 * scale, 2.2 * scale);
+
+                // White sparkle highlight (top-left of each pupil, like the reference)
+                dc.DrawEllipse(eyeWhiteBrush, null, new Point(leftEyeX + pupilDriftX - 0.5 * scale, eyeY + pupilDriftY - 1.0 * scale), 0.7 * scale, 0.7 * scale);
+                dc.DrawEllipse(eyeWhiteBrush, null, new Point(rightEyeX + pupilDriftX - 0.5 * scale, eyeY + pupilDriftY - 1.0 * scale), 0.7 * scale, 0.7 * scale);
             }
 
-            // Eyebrows (raised, friendly)
-            var browPen = new Pen(eyeBrush, 0.8 * scale);
+            // === EYEBROWS ===
+            // In the reference these are short dark curved strokes above each eye,
+            // angled like accent marks: \ above the left eye, / above the right eye.
+            var browPen = new Pen(CreateBrush(Color.FromRgb(50, 45, 60)), 0.9 * scale);
             browPen.Freeze();
-            dc.DrawLine(browPen, new Point((leftEyeX - 2.5 * scale), (eyeY - 5 * scale)), new Point((leftEyeX + 2 * scale), (eyeY - 4.5 * scale)));
-            dc.DrawLine(browPen, new Point((rightEyeX - 2 * scale), (eyeY - 4.5 * scale)), new Point((rightEyeX + 2.5 * scale), (eyeY - 5 * scale)));
+
+            if (state == PetState.Happy)
+            {
+                // Raised excited
+                var browLift = -1.2 * scale;
+                dc.DrawLine(browPen, new Point((leftEyeX - 1.5 * scale), (eyeY - 4.5 * scale + browLift)), new Point((leftEyeX + 1 * scale), (eyeY - 3.8 * scale + browLift)));
+                dc.DrawLine(browPen, new Point((rightEyeX - 1 * scale), (eyeY - 3.8 * scale + browLift)), new Point((rightEyeX + 1.5 * scale), (eyeY - 4.5 * scale + browLift)));
+            }
+            else if (state == PetState.Dragging)
+            {
+                // Surprised — flat and raised
+                var browLift = -1.5 * scale;
+                dc.DrawLine(browPen, new Point((leftEyeX - 1.5 * scale), (eyeY - 4 * scale + browLift)), new Point((leftEyeX + 1.5 * scale), (eyeY - 4 * scale + browLift)));
+                dc.DrawLine(browPen, new Point((rightEyeX - 1.5 * scale), (eyeY - 4 * scale + browLift)), new Point((rightEyeX + 1.5 * scale), (eyeY - 4 * scale + browLift)));
+            }
+            else
+            {
+                // Normal — angled accent marks like in the reference image
+                var browWiggle = state == PetState.Idle ? (frame == 0 ? 0.3 : -0.3) * scale : 0;
+                // Left brow: \ shape
+                dc.DrawLine(browPen, new Point((leftEyeX - 1.5 * scale), (eyeY - 4.5 * scale + browWiggle)), new Point((leftEyeX + 1 * scale), (eyeY - 3.8 * scale + browWiggle)));
+                // Right brow: / shape
+                dc.DrawLine(browPen, new Point((rightEyeX - 1 * scale), (eyeY - 3.8 * scale - browWiggle)), new Point((rightEyeX + 1.5 * scale), (eyeY - 4.5 * scale - browWiggle)));
+            }
         }
 
         private void DrawRubberDuck(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)

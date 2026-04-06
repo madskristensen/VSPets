@@ -334,7 +334,7 @@ namespace VSPets.Pets
             }
         }
 
-        private int GetBehaviorDuration(string behavior)
+        protected virtual int GetBehaviorDuration(string behavior)
         {
             return behavior switch
             {
@@ -347,7 +347,7 @@ namespace VSPets.Pets
             };
         }
 
-        private string GetBehaviorSpeech(string behavior)
+        protected virtual string GetBehaviorSpeech(string behavior)
         {
             return behavior switch
             {
