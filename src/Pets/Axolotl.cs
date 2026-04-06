@@ -29,8 +29,6 @@ namespace VSPets.Pets
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Slow;
 
-        public override bool CanClimb => true; // They can stick to glass!
-
         public override bool FacesLeftByDefault => false; // Axolotl art faces right
 
         public override PetColor[] GetPossibleColors()

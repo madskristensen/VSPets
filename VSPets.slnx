@@ -8,4 +8,6 @@
     <Platform Solution="*|arm64" Project="arm64" />
     <Platform Solution="*|x86" Project="x86" />
   </Project>
+  <Project Path="test/VSPets.Benchmarks/VSPets.Benchmarks.csproj" />
+  <Project Path="test/VSPets.Test/VSPets.Test.csproj" />
 </Solution>

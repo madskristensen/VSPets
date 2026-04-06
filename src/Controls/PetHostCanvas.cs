@@ -174,8 +174,9 @@ namespace VSPets.Controls
                 Point screenPoint = PointToScreen(new Point(localX, 0));
                 return screenPoint.X;
             }
-            catch
+            catch (Exception ex)
             {
+                ex.Log();
                 return localX;
             }
         }
@@ -190,8 +191,9 @@ namespace VSPets.Controls
                 Point localPoint = PointFromScreen(new Point(screenX, 0));
                 return localPoint.X;
             }
-            catch
+            catch (Exception ex)
             {
+                ex.Log();
                 return screenX;
             }
         }

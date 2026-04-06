@@ -29,11 +29,6 @@ namespace VSPets.Pets
 
         public override string Emoji => "🐱";
 
-        /// <summary>
-        /// Cats can climb and are good at it!
-        /// </summary>
-        public override bool CanClimb => true;
-
         public override PetColor[] GetPossibleColors()
         {
             return

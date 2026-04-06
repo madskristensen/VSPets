@@ -27,8 +27,6 @@ namespace VSPets.Pets
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Active;
 
-        public override bool CanClimb => true;
-
         public override PetColor[] GetPossibleColors()
         {
             return
@@ -62,8 +60,6 @@ namespace VSPets.Pets
 
         public override string Emoji => "📎";
 
-        public override bool CanClimb => true;
-
         public override PetColor[] GetPossibleColors()
         {
             return [PetColor.Original];
@@ -72,19 +68,6 @@ namespace VSPets.Pets
         protected override string GenerateDefaultName()
         {
             return "Clippy";
-        }
-
-        protected override string GetSpriteLabel(PetState state)
-        {
-            // Clippy has different animation names
-            return state switch
-            {
-                PetState.Idle => "idle",
-                PetState.Walking => "walk",
-                PetState.Running => "run",
-                PetState.Happy => "wave",
-                _ => base.GetSpriteLabel(state)
-            };
         }
     }
 
@@ -115,11 +98,6 @@ namespace VSPets.Pets
         /// Rubber ducks waddle at a leisurely pace.
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Slow;
-
-        /// <summary>
-        /// Rubber ducks don't climb - they float!
-        /// </summary>
-        public override bool CanClimb => false;
 
         public override PetColor[] GetPossibleColors()
         {
@@ -188,11 +166,6 @@ namespace VSPets.Pets
         /// </summary>
         public override bool FacesLeftByDefault => false;
 
-        /// <summary>
-        /// Turtles are slow but determined.
-        /// </summary>
-        public override bool CanClimb => false;
-
         public override PetColor[] GetPossibleColors()
         {
             return
@@ -246,8 +219,6 @@ namespace VSPets.Pets
         /// </summary>
         public override bool FacesLeftByDefault => false;
 
-        public override bool CanClimb => false;
-
         public override PetColor[] GetPossibleColors()
         {
             return
@@ -299,8 +270,6 @@ namespace VSPets.Pets
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Normal;
 
-        public override bool CanClimb => true;
-
         public override PetColor[] GetPossibleColors()
         {
             return
@@ -347,8 +316,6 @@ namespace VSPets.Pets
         /// Wolves are fast pack hunters.
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Active;
-
-        public override bool CanClimb => false;
 
         /// <summary>
         /// Wolf sprite faces left by default.
@@ -402,11 +369,6 @@ namespace VSPets.Pets
         /// T-Rex is a terrifyingly fast apex predator!
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Hyper;
-
-        /// <summary>
-        /// Those tiny arms can't climb much.
-        /// </summary>
-        public override bool CanClimb => false;
 
         /// <summary>
         /// T-Rex faces right by default in our sprite.

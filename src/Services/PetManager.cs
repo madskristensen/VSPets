@@ -24,7 +24,7 @@ namespace VSPets.Services
         private readonly List<IPet> _petsUpdateBuffer = [];
         private readonly Dictionary<Guid, PetControl> _petControls = [];
         private readonly Dictionary<Guid, PetRenderState> _petRenderStates = [];
-        private readonly ReaderWriterLockSlim _petLock = new(LockRecursionPolicy.SupportsRecursion);
+        private readonly ReaderWriterLockSlim _petLock = new();
         private readonly Random _random = new(); // Shared random for better variance
 
         // Track last spawn side to avoid spawning multiple pets from same side
@@ -515,10 +515,30 @@ namespace VSPets.Services
                     }
 
                     // Update control position and breathing animation
-                    if (_petControls.TryGetValue(pet.Id, out PetControl control))
-                    {
-                        _petRenderStates.TryGetValue(pet.Id, out var renderState);
+                    PetControl control;
+                    PetRenderState renderState;
+                    bool hasControl;
 
+                    _petLock.EnterReadLock();
+                    try
+                    {
+                        hasControl = _petControls.TryGetValue(pet.Id, out control);
+                        if (hasControl)
+                        {
+                            _petRenderStates.TryGetValue(pet.Id, out renderState);
+                        }
+                        else
+                        {
+                            renderState = default;
+                        }
+                    }
+                    finally
+                    {
+                        _petLock.ExitReadLock();
+                    }
+
+                    if (hasControl)
+                    {
                         if (double.IsNaN(renderState.X) || Math.Abs(renderState.X - pet.X) > _renderPositionEpsilon)
                         {
                             Canvas.SetLeft(control, pet.X);
@@ -537,7 +557,15 @@ namespace VSPets.Services
                             renderState.Direction = pet.Direction;
                         }
 
-                        _petRenderStates[pet.Id] = renderState;
+                        _petLock.EnterWriteLock();
+                        try
+                        {
+                            _petRenderStates[pet.Id] = renderState;
+                        }
+                        finally
+                        {
+                            _petLock.ExitWriteLock();
+                        }
 
                         if (shouldUpdateBreathing)
                         {
@@ -627,8 +655,10 @@ namespace VSPets.Services
                 {
                     var throwX = thrower.X + (int)thrower.Size / 2;
 
-                    // Fire and forget the ball throw
-                    _ = ThrowBallAsync(throwX, thrower.Id);
+                    // Fire and forget the ball throw (with error logging)
+                    _ = ThrowBallAsync(throwX, thrower.Id).ContinueWith(
+                        t => t.Exception.Log(),
+                        TaskContinuationOptions.OnlyOnFaulted);
                     _timeSinceLastBallThrow = 0;
 
                     // Show the thrower being playful
@@ -708,8 +738,9 @@ namespace VSPets.Services
             var ballCenterX = _activeBall.X + _activeBall.Size / 2;
             var direction = ballCenterX > petCenterX ? 1 : -1;
 
-            pet.X += direction * _chaseSpeed * deltaTime;
-            pet.Direction = direction > 0 ? PetDirection.Right : PetDirection.Left;
+            var newX = pet.X + direction * _chaseSpeed * deltaTime;
+            pet.SetPosition(newX, pet.Y);
+            pet.SetDirection(direction > 0 ? PetDirection.Right : PetDirection.Left);
 
             // Update animation
             pet.UpdateAnimation(deltaTime);
@@ -989,12 +1020,13 @@ namespace VSPets.Services
             // Restore saved pets
             if (_hiddenPetsData != null && _hiddenPetsData.Any())
             {
-                foreach (PetData petData in _hiddenPetsData)
+                for (var i = 0; i < _hiddenPetsData.Count; i++)
                 {
+                    PetData petData = _hiddenPetsData[i];
                     await AddPetAsync(petData.PetType, petData.Color, petData.Name);
 
                     // Small delay between spawns to avoid overlap
-                    if (petData != _hiddenPetsData.Last())
+                    if (i < _hiddenPetsData.Count - 1)
                     {
                         await Task.Delay(_random.Next(2000, 5000));
                     }

@@ -1,4 +1,3 @@
-using System.Windows;
 using VSPets.Models;
 
 namespace VSPets.Pets
@@ -58,16 +57,6 @@ namespace VSPets.Pets
         /// Current Y position (distance from floor, 0 = on ground).
         /// </summary>
         double Y { get; }
-
-        /// <summary>
-        /// The WPF control representing this pet.
-        /// </summary>
-        FrameworkElement Control { get; }
-
-        /// <summary>
-        /// Whether the pet can climb tool windows.
-        /// </summary>
-        bool CanClimb { get; }
 
         /// <summary>
         /// Greeting/hello message for this pet type.

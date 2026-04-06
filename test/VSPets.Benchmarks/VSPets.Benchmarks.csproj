@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
+    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" Version="18.3.36812.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\Animation\ProceduralSpriteRenderer.cs" Link="Animation\ProceduralSpriteRenderer.cs" />
+    <Compile Include="..\..\src\Models\PetEnums.cs" Link="Models\PetEnums.cs" />
+    <Compile Include="..\..\src\Models\PetState.cs" Link="Models\PetState.cs" />
+  </ItemGroup>
+
+</Project>

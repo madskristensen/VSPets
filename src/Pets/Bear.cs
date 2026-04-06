@@ -38,10 +38,6 @@ namespace VSPets.Pets
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Slow;
 
-        public override bool CanClimb => false; // Bears don't climb walls in IDE usually? Or do they? 
-        // Real bears climb trees. Let's say false to differ from cats/dogs/others or true?
-        // Let's keep false for variety if others are true.
-
         public override PetColor[] GetPossibleColors()
         {
             return

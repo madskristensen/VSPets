@@ -1,4 +1,3 @@
-using System.Windows;
 using VSPets.Animation;
 using VSPets.Models;
 using VSPets.Options;
@@ -38,7 +37,6 @@ namespace VSPets.Pets
 
         // Dragging state
         private bool _isDragging;
-        private PetState _stateBeforeDrag;
 
         // Per-pet randomization factors (set once at creation for uniqueness)
         private readonly double _speedVariation;      // 0.8 to 1.2 multiplier
@@ -129,9 +127,7 @@ namespace VSPets.Pets
         }
 
         public double Y => _y;
-        public FrameworkElement Control => null;
 
-        public virtual bool CanClimb => true;
         public abstract string HelloMessage { get; }
         public abstract string Emoji { get; }
 
@@ -192,31 +188,14 @@ namespace VSPets.Pets
         /// </summary>
         public abstract PetColor[] GetPossibleColors();
 
+        private static readonly string[] _defaultBehaviors = ["yawn", "stretch", "look_around", "ear_twitch", "tail_wag"];
+
         /// <summary>
         /// Gets possible random behaviors for this pet type.
         /// </summary>
         public virtual string[] GetPossibleBehaviors()
         {
-            return ["yawn", "stretch", "look_around", "ear_twitch", "tail_wag"];
-        }
-
-        /// <summary>
-        /// Gets the sprite label for the current state.
-        /// </summary>
-        protected virtual string GetSpriteLabel(PetState state)
-        {
-            return state switch
-            {
-                PetState.Idle => "idle",
-                PetState.Walking => "walk",
-                PetState.Running => "walk_fast",
-                PetState.Sleeping => "lie",
-                PetState.Happy => "swipe",
-                PetState.Exiting => "walk",
-                PetState.Entering => "walk",
-                PetState.Dragging => "idle", // Use idle sprite while being dragged
-                _ => "idle"
-            };
+            return _defaultBehaviors;
         }
 
         /// <summary>
@@ -545,15 +524,22 @@ namespace VSPets.Pets
         /// </summary>
         private static double GlobalSpeedFactor()
         {
-            return General.Instance.PetSpeed switch
+            try
             {
-                PetSpeed.Lazy => 0.5,
-                PetSpeed.Slow => 0.75,
-                PetSpeed.Normal => 1.0,
-                PetSpeed.Active => 1.5,
-                PetSpeed.Hyper => 2.0,
-                _ => 1.0
-            };
+                return General.Instance.PetSpeed switch
+                {
+                    PetSpeed.Lazy => 0.5,
+                    PetSpeed.Slow => 0.75,
+                    PetSpeed.Normal => 1.0,
+                    PetSpeed.Active => 1.5,
+                    PetSpeed.Hyper => 2.0,
+                    _ => 1.0
+                };
+            }
+            catch
+            {
+                return 1.0; // Default to normal speed if settings are unavailable
+            }
         }
 
         private void TransitionToNextState()
@@ -717,7 +703,6 @@ namespace VSPets.Pets
             }
 
             _isDragging = true;
-            _stateBeforeDrag = _currentState;
             SetState(PetState.Dragging);
 
             Speech?.Invoke(this, new PetSpeechEventArgs

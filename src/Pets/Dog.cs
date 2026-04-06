@@ -34,11 +34,6 @@ namespace VSPets.Pets
         /// </summary>
         public override PetSpeed NaturalSpeed => PetSpeed.Active;
 
-        /// <summary>
-        /// Dogs can't climb as well as cats.
-        /// </summary>
-        public override bool CanClimb => false;
-
         public override PetColor[] GetPossibleColors()
         {
             return
@@ -54,15 +49,6 @@ namespace VSPets.Pets
         protected override string GenerateDefaultName()
         {
             return DogNames[NameRandom.Next(DogNames.Length)];
-        }
-
-        /// <summary>
-        /// Dog-specific sprite mapping - dogs show happiness differently.
-        /// </summary>
-        protected override string GetSpriteLabel(PetState state)
-        {
-            // Dogs use 'swipe' animation for happy (tail wag effect)
-            return base.GetSpriteLabel(state);
         }
 
         /// <summary>
