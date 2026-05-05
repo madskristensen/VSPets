@@ -35,9 +35,12 @@ namespace VSPets.Animation
         // Track sprites currently being rendered in background to avoid duplicate work
         private readonly ConcurrentDictionary<string, Task<BitmapSource>> _pendingRenders = new();
 
-        // Reusable frozen Brush/Pen caches — these objects are immutable once frozen
-        private readonly Dictionary<Color, Brush> _brushCache = new();
-        private readonly Dictionary<(Color color, double thickness), Pen> _penCache = new();
+        // Reusable frozen Brush/Pen caches — these objects are immutable once frozen.
+        // Use ConcurrentDictionary because sprites are rendered on background threads
+        // (see PreWarmCacheAsync / PreRenderFrameAsync) and unsynchronized access to
+        // a plain Dictionary can corrupt its buckets and cause FindEntry to hang.
+        private readonly ConcurrentDictionary<Color, Brush> _brushCache = new();
+        private readonly ConcurrentDictionary<(Color color, double thickness), Pen> _penCache = new();
 
         // Precomputed leg-position lookup tables — frame counts are tiny (2 or 4),
         // so every Math.Sin result is known at compile time.
@@ -471,13 +474,12 @@ namespace VSPets.Animation
 
         private Brush CreateBrush(Color color)
         {
-            if (_brushCache.TryGetValue(color, out Brush cached))
-                return cached;
-
-            var brush = new SolidColorBrush(color);
-            brush.Freeze();
-            _brushCache[color] = brush;
-            return brush;
+            return _brushCache.GetOrAdd(color, static c =>
+            {
+                var brush = new SolidColorBrush(c);
+                brush.Freeze();
+                return brush;
+            });
         }
 
         private Pen GetOrCreatePen(Color color, double thickness, PenLineCap startCap = PenLineCap.Flat, PenLineCap endCap = PenLineCap.Flat)
