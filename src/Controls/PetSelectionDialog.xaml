@@ -8,40 +8,238 @@
         xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
         toolkit:Themes.UseVsTheme="True"
         mc:Ignorable="d"
-        Title="Add Pet" Height="300" Width="350" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
+        Title="Add Pet" Height="400" Width="440" ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        RenderOptions.BitmapScalingMode="NearestNeighbor">
     <platform:DialogWindow.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/Microsoft.VisualStudio.Shell.15.0;component/Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate x:Key="PetTypeItemTemplate" DataType="{x:Type local:PetTypeItem}">
+                <Grid Margin="2,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0"
+                           Source="{Binding Icon}"
+                           Width="28" Height="28"
+                           Stretch="Uniform"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           SnapsToDevicePixels="True"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding DisplayName}"
+                               VerticalAlignment="Center"
+                               Margin="8,0,0,0"
+                               FontSize="13"/>
+                </Grid>
+            </DataTemplate>
+
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="MinWidth" Value="92"/>
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="Padding" Value="14,0"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static platform:EnvironmentColors.AccentMediumBrushKey}}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="4"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background"
+                                            Value="{DynamicResource {x:Static platform:EnvironmentColors.AccentDarkBrushKey}}"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+                <Setter Property="MinWidth" Value="92"/>
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="Padding" Value="14,0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowBorderBrushKey}}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="4"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background"
+                                            Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowButtonHoverActiveBrushKey}}"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="FieldLabelStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Opacity" Value="0.85"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+            </Style>
+
+            <!-- Checkered background so pets of any color are clearly visible -->
+            <DrawingBrush x:Key="CheckerBrush"
+                          TileMode="Tile"
+                          Viewport="0,0,16,16"
+                          ViewportUnits="Absolute"
+                          Stretch="None">
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="#22FFFFFF">
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,16,16"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="#11FFFFFF">
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <RectangleGeometry Rect="0,0,8,8"/>
+                                    <RectangleGeometry Rect="8,8,8,8"/>
+                                </GeometryGroup>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+            </DrawingBrush>
         </ResourceDictionary>
     </platform:DialogWindow.Resources>
 
-    <Grid Margin="15">
+    <Grid Margin="22,18,22,18">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
-            <TextBlock Text="Select a Pet:" Margin="0,0,0,5"/>
-            <ComboBox x:Name="PetTypeComboBox" SelectionChanged="PetTypeComboBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
-
-            <TextBlock x:Name="ColorLabel" Text="Color:" Margin="0,0,0,5" Visibility="Collapsed"/>
-            <ComboBox x:Name="PetColorComboBox" SelectionChanged="PetColorComboBox_SelectionChanged" HorizontalAlignment="Stretch" Visibility="Collapsed"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Choose your companion"
+                       FontSize="18"
+                       FontWeight="SemiBold"/>
+            <TextBlock Text="Pick a pet and color, then preview how it will look in your status bar."
+                       FontSize="12"
+                       Opacity="0.7"
+                       TextWrapping="Wrap"
+                       Margin="0,4,0,0"/>
         </StackPanel>
 
-        <Border Grid.Row="1" Margin="0,15,0,15" BorderThickness="1" 
+        <Grid Grid.Row="1" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Pet" Style="{StaticResource FieldLabelStyle}"/>
+                <ComboBox x:Name="PetTypeComboBox"
+                          SelectionChanged="PetTypeComboBox_SelectionChanged"
+                          HorizontalAlignment="Stretch"
+                          Height="38"
+                          Padding="6,2"
+                          VerticalContentAlignment="Center"
+                          ItemTemplate="{StaticResource PetTypeItemTemplate}"/>
+            </StackPanel>
+
+            <StackPanel x:Name="ColorPanel" Grid.Column="2" Visibility="Collapsed">
+                <TextBlock x:Name="ColorLabel" Text="Color" Style="{StaticResource FieldLabelStyle}"/>
+                <ComboBox x:Name="PetColorComboBox"
+                          SelectionChanged="PetColorComboBox_SelectionChanged"
+                          HorizontalAlignment="Stretch"
+                          Height="38"
+                          Padding="6,2"
+                          VerticalContentAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Margin="0,0,0,18"
+                Height="160"
+                CornerRadius="8"
+                BorderThickness="1"
+                ClipToBounds="True"
                 BorderBrush="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowBorderBrushKey}}"
                 Background="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
-            <local:PetControl x:Name="PreviewPetControl" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Grid>
+                <!-- Checkered backdrop -->
+                <Rectangle Fill="{StaticResource CheckerBrush}"/>
+
+                <!-- Centered, scaled pet preview -->
+                <Viewbox Stretch="Uniform"
+                         StretchDirection="Both"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Margin="16"
+                         RenderOptions.BitmapScalingMode="NearestNeighbor">
+                    <local:PetControl x:Name="PreviewPetControl"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                </Viewbox>
+
+                <TextBlock Text="Preview"
+                           FontSize="10"
+                           Opacity="0.55"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Bottom"
+                           Margin="0,0,10,6"/>
+            </Grid>
         </Border>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="OkButton" Content="OK" IsDefault="True" Width="75" Margin="0,0,10,0" Click="OkButton_Click"/>
-            <Button Content="Cancel" IsCancel="True" Width="75" Click="CancelButton_Click"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel"
+                    IsCancel="True"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,8,0"
+                    Click="CancelButton_Click"/>
+            <Button x:Name="OkButton"
+                    Content="Add pet"
+                    IsDefault="True"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Click="OkButton_Click"/>
         </StackPanel>
     </Grid>
 </platform:DialogWindow>

@@ -1,11 +1,15 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Microsoft.VisualStudio.PlatformUI;
+using VSPets.Animation;
 using VSPets.Models;
 using VSPets.Services;
 using SelectionChangedEventArgs = System.Windows.Controls.SelectionChangedEventArgs;
@@ -25,26 +29,59 @@ namespace VSPets.Controls
         public PetType SelectedPetType { get; private set; }
         public PetColor? SelectedColor { get; private set; }
 
+        private readonly DispatcherTimer _animationTimer;
+        private DateTime _lastAnimationTick;
+
         public PetSelectionDialog()
         {
             InitializeComponent();
 
             SourceInitialized += OnSourceInitialized;
+            Closed += OnClosed;
 
-            // Populate ComboBox with PetType enum values (alphabetically sorted)
-            var petTypes = Enum.GetValues(typeof(PetType))
+            _animationTimer = new DispatcherTimer(DispatcherPriority.Render)
+            {
+                Interval = TimeSpan.FromMilliseconds(33) // ~30 fps is plenty for sprite animation
+            };
+            _animationTimer.Tick += OnAnimationTick;
+
+            // Populate ComboBox with a rendered sprite icon next to each pet name (alphabetically sorted)
+            var petItems = Enum.GetValues(typeof(PetType))
                 .Cast<PetType>()
-                .OrderBy(p => p.ToString())
+                .Select(CreatePetTypeItem)
+                .OrderBy(item => item.DisplayName, StringComparer.CurrentCultureIgnoreCase)
                 .ToList();
 
-            foreach (PetType type in petTypes)
+            foreach (PetTypeItem item in petItems)
             {
-                PetTypeComboBox.Items.Add(type);
+                PetTypeComboBox.Items.Add(item);
             }
 
             PetTypeComboBox.SelectedIndex = 0;
 
             // Initial update handled by SelectionChanged event which fires after setting index
+            _lastAnimationTick = DateTime.UtcNow;
+            _animationTimer.Start();
+        }
+
+        private void OnClosed(object sender, EventArgs e)
+        {
+            _animationTimer.Stop();
+            _animationTimer.Tick -= OnAnimationTick;
+        }
+
+        private void OnAnimationTick(object sender, EventArgs e)
+        {
+            var now = DateTime.UtcNow;
+            var deltaTime = (now - _lastAnimationTick).TotalSeconds;
+            _lastAnimationTick = now;
+
+            // Advance the sprite's animation frame without moving it - keeps the
+            // walk cycle playing in place inside the preview card.
+            if (PreviewPetControl?.Pet is BasePet basePet)
+            {
+                basePet.UpdateAnimation(deltaTime);
+            }
         }
 
         [DllImport("dwmapi.dll")]
@@ -101,12 +138,43 @@ namespace VSPets.Controls
         private static int ToColorRef(Color color)
             => color.R | (color.G << 8) | (color.B << 16);
 
+        private static PetTypeItem CreatePetTypeItem(PetType type)
+        {
+            IPet template = PetManager.Instance.CreatePet(type, null);
+            PetColor color = template?.Color ?? default;
+
+            BitmapSource icon = ProceduralSpriteRenderer.Instance.RenderFrame(
+                type,
+                color,
+                PetState.Idle,
+                0,
+                (int)PetSize.Medium);
+
+            return new PetTypeItem(type, FormatPetName(type), icon);
+        }
+
+        private static string FormatPetName(PetType type)
+        {
+            // Insert spaces before interior capital letters (RubberDuck -> Rubber Duck, TRex -> T Rex).
+            var name = type.ToString();
+            var sb = new StringBuilder(name.Length + 4);
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]) && !char.IsUpper(name[i - 1]))
+                {
+                    sb.Append(' ');
+                }
+                sb.Append(name[i]);
+            }
+            return sb.ToString();
+        }
+
         private void PetTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (PetTypeComboBox.SelectedItem is PetType type)
+            if (PetTypeComboBox.SelectedItem is PetTypeItem item)
             {
-                SelectedPetType = type;
-                UpdateColorOptions(type);
+                SelectedPetType = item.PetType;
+                UpdateColorOptions(item.PetType);
                 UpdatePreview();
             }
         }
@@ -145,22 +213,19 @@ namespace VSPets.Controls
                         PetColorComboBox.Items.Add(color);
                     }
                     PetColorComboBox.SelectedIndex = 0; // Select Random by default
-                    PetColorComboBox.Visibility = Visibility.Visible;
-                    ColorLabel.Visibility = Visibility.Visible;
+                    ColorPanel.Visibility = Visibility.Visible;
                 }
                 else
                 {
-                    PetColorComboBox.Visibility = Visibility.Collapsed;
-                    ColorLabel.Visibility = Visibility.Collapsed;
+                    ColorPanel.Visibility = Visibility.Collapsed;
                     SelectedColor = null;
                 }
             }
             else
             {
                 // Handle non-BasePet implementations if any (currently all are BasePet)
-                PetColorComboBox.Visibility = Visibility.Collapsed;
-                 ColorLabel.Visibility = Visibility.Collapsed;
-                 SelectedColor = null;
+                ColorPanel.Visibility = Visibility.Collapsed;
+                SelectedColor = null;
             }
         }
 
@@ -185,7 +250,12 @@ namespace VSPets.Controls
                 pet.SetDirection(PetDirection.Right);
                 pet.SetState(PetState.Walking); // Walking usually shows side profile nicely
 
+                // Render the source sprite at the largest available size so the Viewbox
+                // scales up a crisper bitmap in the preview card.
+                pet.Size = PetSize.Large;
+
                 PreviewPetControl.Pet = pet;
+                PreviewPetControl.SetSize(PetSize.Large);
              }
         }
 

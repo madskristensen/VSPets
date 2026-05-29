@@ -1,7 +1,6 @@
 # VS Pets 🐱🐕🦊
 
 [![Build](https://github.com/madskristensen/VSPets/actions/workflows/build.yaml/badge.svg)](https://github.com/madskristensen/VSPets/actions/workflows/build.yaml)
-[![Install from VSIX Gallery](https://www.vsixgallery.com/badge/VSPets.74ced5aa-4286-436c-b92c-806b823c7e64.svg)](https://www.vsixgallery.com/extension/VSPets.74ced5aa-4286-436c-b92c-806b823c7e64/)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/madskristensen)
 
 **Bring your Visual Studio to life with adorable animated pets that walk along your status bar!**
