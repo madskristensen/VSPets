@@ -143,6 +143,8 @@ public class PetCreationTests
     [DataRow(PetType.Raccoon)]
     [DataRow(PetType.TRex)]
     [DataRow(PetType.Wolf)]
+    [DataRow(PetType.Bird)]
+    [DataRow(PetType.Fish)]
     public void PetManager_CreatePet_AllTypesSucceed(PetType petType)
     {
         IPet pet = PetManager.Instance.CreatePet(petType, null);

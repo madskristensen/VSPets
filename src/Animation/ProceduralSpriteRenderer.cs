@@ -382,6 +382,12 @@ namespace VSPets.Animation
                     case PetType.Wolf:
                         DrawWolf(dc, size, baseColor, accentColor, eyeColor, state, frame, outlinePen);
                         break;
+                    case PetType.Bird:
+                        DrawBird(dc, size, baseColor, accentColor, eyeColor, state, frame, outlinePen);
+                        break;
+                    case PetType.Fish:
+                        DrawFish(dc, size, baseColor, accentColor, eyeColor, state, frame, outlinePen);
+                        break;
                     default:
                         DrawGenericPet(dc, size, baseColor, state, frame);
                         break;
@@ -425,6 +431,8 @@ namespace VSPets.Animation
                     PetType.Raccoon => Color.FromRgb(128, 128, 128),
                     PetType.TRex => Color.FromRgb(76, 153, 76),
                     PetType.Wolf => Color.FromRgb(128, 128, 128),
+                    PetType.Bird => Color.FromRgb(100, 149, 237),
+                    PetType.Fish => Color.FromRgb(255, 140, 0),
                     _ => Color.FromRgb(150, 150, 150)
                 }
             };
@@ -2172,6 +2180,217 @@ namespace VSPets.Animation
             // Eyes
             dc.DrawEllipse(eyeBrush, null, new Point(12 * scale, (12 + bodyBob) * scale), 2 * scale, 2 * scale);
             dc.DrawEllipse(eyeBrush, null, new Point(20 * scale, (12 + bodyBob) * scale), 2 * scale, 2 * scale);
+        }
+
+        private void DrawBird(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
+        {
+            var scale = size / 32.0;
+            Brush baseBrush = CreateBrush(baseColor);
+            Brush accentBrush = CreateBrush(accentColor);
+            Brush beakBrush = CreateBrush(Color.FromRgb(255, 160, 50));
+            Brush legBrush = CreateBrush(Color.FromRgb(230, 140, 40));
+            Brush eyeBrush = CreateBrush(eyeColor);
+            Brush whiteBrush = CreateBrush(Colors.White);
+
+            // Hop/bob animation
+            var bodyBob = (state == PetState.Walking || state == PetState.Running)
+                ? Math.Abs(Math.Sin(frame * Math.PI * 0.5)) * -3
+                : (state == PetState.Happy ? Math.Sin(frame * Math.PI) * 2 : 0);
+
+            // Wing flap during happy/running
+            var wingFlap = (state == PetState.Happy || state == PetState.Running)
+                ? Math.Sin(frame * Math.PI) * 3
+                : (state == PetState.Walking ? Math.Sin(frame * Math.PI * 0.5) * 1 : 0);
+
+            var bodyCenterX = 16 * scale;
+            var bodyCenterY = (18 + bodyBob) * scale;
+
+            // Tail feathers (back of body) - drawn first so body overlaps base
+            DrawTriangle(dc, baseBrush,
+                new Point(22 * scale, (14 + bodyBob) * scale),
+                new Point(22 * scale, (20 + bodyBob) * scale),
+                new Point(30 * scale, (12 + bodyBob) * scale));
+            DrawTriangle(dc, baseBrush,
+                new Point(22 * scale, (16 + bodyBob) * scale),
+                new Point(22 * scale, (22 + bodyBob) * scale),
+                new Point(30 * scale, (22 + bodyBob) * scale));
+
+            // Plump round body (egg-shaped)
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(bodyCenterX, bodyCenterY),
+                10 * scale, 8 * scale);
+
+            // Belly highlight
+            dc.DrawEllipse(accentBrush, null,
+                new Point((bodyCenterX - 1.5 * scale), (bodyCenterY + 2 * scale)),
+                5 * scale, 4 * scale);
+
+            // Wing
+            var wingGeometry = new StreamGeometry();
+            using (StreamGeometryContext ctx = wingGeometry.Open())
+            {
+                ctx.BeginFigure(new Point((bodyCenterX + 2 * scale), (bodyCenterY - 3 * scale)), true, true);
+                ctx.BezierTo(
+                    new Point((bodyCenterX + 7 * scale), (bodyCenterY - 4 + wingFlap) * scale),
+                    new Point((bodyCenterX + 8 * scale), (bodyCenterY + 1 + wingFlap) * scale),
+                    new Point((bodyCenterX + 5 * scale), (bodyCenterY + 4 * scale)),
+                    true, true);
+                ctx.LineTo(new Point((bodyCenterX + 2 * scale), (bodyCenterY - 3 * scale)), true, false);
+            }
+            wingGeometry.Freeze();
+            dc.DrawGeometry(accentBrush, outlinePen, wingGeometry);
+
+            // Head (slightly above and forward of body)
+            var headX = 8 * scale;
+            var headY = (9 + bodyBob) * scale;
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(headX, headY),
+                7 * scale, 6 * scale);
+
+            // Head highlight
+            dc.DrawEllipse(accentBrush, null,
+                new Point((headX - 1.5 * scale), (headY - 1.5 * scale)),
+                2.5 * scale, 2 * scale);
+
+            // Triangular beak (pointing left)
+            DrawTriangle(dc, beakBrush,
+                new Point((headX - 7 * scale), (headY + 0.5 * scale)),
+                new Point((headX - 2 * scale), (headY - 1 * scale)),
+                new Point((headX - 2 * scale), (headY + 2 * scale)));
+
+            // Eye
+            if (state == PetState.Sleeping)
+            {
+                var eyePen = new Pen(eyeBrush, 1 * scale);
+                eyePen.Freeze();
+                dc.DrawArc(eyePen, new Point((headX - 1 * scale), (headY - 1 * scale)), 1.6 * scale, 0, 180);
+            }
+            else if (state == PetState.Happy)
+            {
+                var eyePen = new Pen(eyeBrush, 1 * scale);
+                eyePen.Freeze();
+                dc.DrawLine(eyePen, new Point((headX - 2.5 * scale), (headY - 0.5 * scale)), new Point((headX - 1 * scale), (headY - 2 * scale)));
+                dc.DrawLine(eyePen, new Point((headX - 1 * scale), (headY - 2 * scale)), new Point((headX + 0.5 * scale), (headY - 0.5 * scale)));
+            }
+            else
+            {
+                dc.DrawEllipse(whiteBrush, null, new Point((headX - 1 * scale), (headY - 1 * scale)), 1.8 * scale, 1.8 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point((headX - 1 * scale), (headY - 1 * scale)), 1.2 * scale, 1.2 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point((headX - 1.5 * scale), (headY - 1.5 * scale)), 0.5 * scale, 0.5 * scale);
+            }
+
+            // Two little legs
+            var legPen = new Pen(legBrush, 1.4 * scale);
+            legPen.Freeze();
+            var legY = (27 + bodyBob) * scale;
+            var legTopY = (25 + bodyBob) * scale;
+
+            var leftLegX = (13 + (state == PetState.Walking ? Math.Sin(frame * Math.PI) * 1.2 : 0)) * scale;
+            var rightLegX = (18 + (state == PetState.Walking ? Math.Sin(frame * Math.PI + Math.PI) * 1.2 : 0)) * scale;
+
+            dc.DrawLine(legPen, new Point(leftLegX, legTopY), new Point(leftLegX, legY));
+            dc.DrawLine(legPen, new Point(rightLegX, legTopY), new Point(rightLegX, legY));
+
+            // Feet (little tick marks)
+            dc.DrawLine(legPen, new Point((leftLegX - 1.5 * scale), legY), new Point((leftLegX + 1.5 * scale), legY));
+            dc.DrawLine(legPen, new Point((rightLegX - 1.5 * scale), legY), new Point((rightLegX + 1.5 * scale), legY));
+        }
+
+        private void DrawFish(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
+        {
+            var scale = size / 32.0;
+            Brush baseBrush = CreateBrush(baseColor);
+            Brush accentBrush = CreateBrush(accentColor);
+            Brush finBrush = CreateBrush(Color.FromArgb(220, accentColor.R, accentColor.G, accentColor.B));
+            Brush eyeBrush = CreateBrush(eyeColor);
+            Brush whiteBrush = CreateBrush(Colors.White);
+            Brush bubbleBrush = CreateBrush(Color.FromArgb(140, 200, 230, 255));
+
+            // Fish swims with a gentle vertical bob and side-to-side tail swish
+            var bodyBob = Math.Sin(frame * Math.PI * 0.5) * 1.5;
+            var tailSwish = (state == PetState.Running)
+                ? Math.Sin(frame * Math.PI) * 4
+                : Math.Sin(frame * Math.PI * 0.5) * 2;
+
+            var bodyCenterX = 14 * scale;
+            var bodyCenterY = (17 + bodyBob) * scale;
+
+            // Tail fin (large triangular, on the right, swishes)
+            DrawTriangle(dc, finBrush,
+                new Point(23 * scale, (17 + bodyBob) * scale),
+                new Point((31 + tailSwish * 0.3) * scale, (7 + bodyBob - tailSwish) * scale),
+                new Point((31 - tailSwish * 0.3) * scale, (27 + bodyBob + tailSwish) * scale));
+
+            // Top fin (dorsal) - larger
+            DrawTriangle(dc, finBrush,
+                new Point(10 * scale, (11 + bodyBob) * scale),
+                new Point(19 * scale, (11 + bodyBob) * scale),
+                new Point(14 * scale, (3 + bodyBob) * scale));
+
+            // Bottom fin (anal fin)
+            DrawTriangle(dc, finBrush,
+                new Point(12 * scale, (23 + bodyBob) * scale),
+                new Point(18 * scale, (23 + bodyBob) * scale),
+                new Point(15 * scale, (28 + bodyBob) * scale));
+
+            // Main body (almond shape)
+            dc.DrawEllipse(baseBrush, outlinePen,
+                new Point(bodyCenterX, bodyCenterY),
+                11 * scale, 7 * scale);
+
+            // Belly highlight
+            dc.DrawEllipse(accentBrush, null,
+                new Point(bodyCenterX, (bodyCenterY + 2 * scale)),
+                7.5 * scale, 3.5 * scale);
+
+            // Side fin (pectoral fin)
+            var pectoralWave = Math.Sin(frame * Math.PI * 0.5) * 1.2;
+            DrawTriangle(dc, finBrush,
+                new Point((bodyCenterX - 1 * scale), (bodyCenterY + 1 * scale)),
+                new Point((bodyCenterX + 4 * scale), (bodyCenterY + 1 * scale)),
+                new Point((bodyCenterX + 1.5 * scale), (bodyCenterY + 5 + pectoralWave) * scale));
+
+            // Gill line (subtle accent)
+            Brush gillBrush = CreateBrush(Color.FromArgb(80, 0, 0, 0));
+            var gillPen = new Pen(gillBrush, 0.5 * scale);
+            gillPen.Freeze();
+            dc.DrawArc(gillPen, new Point((bodyCenterX - 5 * scale), bodyCenterY), 2.5 * scale, 250, 220);
+
+            // Eye (on the left/front of the fish)
+            var eyeX = (bodyCenterX - 7 * scale);
+            var eyeY = (bodyCenterY - 1.5 * scale);
+            if (state == PetState.Sleeping)
+            {
+                var eyePen = new Pen(eyeBrush, 1 * scale);
+                eyePen.Freeze();
+                dc.DrawArc(eyePen, new Point(eyeX, eyeY), 1.6 * scale, 0, 180);
+            }
+            else if (state == PetState.Happy)
+            {
+                var eyePen = new Pen(eyeBrush, 1 * scale);
+                eyePen.Freeze();
+                dc.DrawLine(eyePen, new Point((eyeX - 1.5 * scale), (eyeY + 0.5 * scale)), new Point(eyeX, (eyeY - 1 * scale)));
+                dc.DrawLine(eyePen, new Point(eyeX, (eyeY - 1 * scale)), new Point((eyeX + 1.5 * scale), (eyeY + 0.5 * scale)));
+            }
+            else
+            {
+                dc.DrawEllipse(whiteBrush, null, new Point(eyeX, eyeY), 1.8 * scale, 1.8 * scale);
+                dc.DrawEllipse(eyeBrush, null, new Point((eyeX - 0.2 * scale), eyeY), 1.2 * scale, 1.2 * scale);
+                dc.DrawEllipse(whiteBrush, null, new Point((eyeX - 0.6 * scale), (eyeY - 0.6 * scale)), 0.5 * scale, 0.5 * scale);
+            }
+
+            // Tiny smile
+            var mouthPen = new Pen(eyeBrush, 0.6 * scale);
+            mouthPen.Freeze();
+            dc.DrawArc(mouthPen, new Point((bodyCenterX - 8.5 * scale), (bodyCenterY + 1.5 * scale)), 1.2 * scale, 200, 140);
+
+            // Occasional bubble for a swimmy feel
+            if (frame % 2 == 0)
+            {
+                dc.DrawEllipse(bubbleBrush, null,
+                    new Point((bodyCenterX - 10 * scale), (bodyCenterY - 5 + (frame * 0.5)) * scale),
+                    1.1 * scale, 1.1 * scale);
+            }
         }
 
         #endregion

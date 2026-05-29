@@ -65,8 +65,10 @@
     <Compile Include="Pets\Axolotl.cs" />
     <Compile Include="Pets\BasePet.cs" />
     <Compile Include="Pets\Bear.cs" />
+    <Compile Include="Pets\Bird.cs" />
     <Compile Include="Pets\Cat.cs" />
     <Compile Include="Pets\Dog.cs" />
+    <Compile Include="Pets\Fish.cs" />
     <Compile Include="Pets\IPet.cs" />
     <Compile Include="Pets\OtherPets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

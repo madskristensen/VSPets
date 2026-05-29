@@ -16,7 +16,9 @@ namespace VSPets.Models
         Bunny,
         Raccoon,
         TRex,
-        Wolf
+        Wolf,
+        Bird,
+        Fish
     }
 
     /// <summary>

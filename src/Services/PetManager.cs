@@ -453,6 +453,8 @@ namespace VSPets.Services
                 PetType.Raccoon => color.HasValue ? new Raccoon(color.Value) : Raccoon.CreateRandom(),
                 PetType.TRex => color.HasValue ? new TRex(color.Value) : TRex.CreateRandom(),
                 PetType.Wolf => color.HasValue ? new Wolf(color.Value) : Wolf.CreateRandom(),
+                PetType.Bird => color.HasValue ? new Bird(color.Value) : Bird.CreateRandom(),
+                PetType.Fish => color.HasValue ? new Fish(color.Value) : Fish.CreateRandom(),
                 _ => Cat.CreateRandom()
             };
         }
