@@ -18,7 +18,8 @@ namespace VSPets.Models
         TRex,
         Wolf,
         Bird,
-        Fish
+        Fish,
+        Tiger
     }
 
     /// <summary>

@@ -388,6 +388,9 @@ namespace VSPets.Animation
                     case PetType.Fish:
                         DrawFish(dc, size, baseColor, accentColor, eyeColor, state, frame, outlinePen);
                         break;
+                    case PetType.Tiger:
+                        DrawTiger(dc, size, baseColor, accentColor, eyeColor, state, frame, outlinePen);
+                        break;
                     default:
                         DrawGenericPet(dc, size, baseColor, state, frame);
                         break;
@@ -433,6 +436,7 @@ namespace VSPets.Animation
                     PetType.Wolf => Color.FromRgb(128, 128, 128),
                     PetType.Bird => Color.FromRgb(100, 149, 237),
                     PetType.Fish => Color.FromRgb(255, 140, 0),
+                    PetType.Tiger => Color.FromRgb(255, 140, 0),
                     _ => Color.FromRgb(150, 150, 150)
                 }
             };
@@ -731,6 +735,41 @@ namespace VSPets.Animation
 
             // Fluffy tail
             DrawCatTail(dc, baseBrush, scale, bodyY, state, frame);
+        }
+
+        private void DrawTiger(DrawingContext dc, int size, Color baseColor, Color accentColor, Color eyeColor, PetState state, int frame, Pen outlinePen = null)
+        {
+            // A tiger is essentially a big cat, so reuse the cat body and overlay stripes.
+            DrawCat(dc, size, baseColor, accentColor, eyeColor, state, frame, outlinePen);
+
+            var scale = size / 32.0;
+            (_, _, var bodyBob) = GetLegPositions(state, frame);
+
+            // Dark stripe colour, slightly translucent so it reads as fur rather than paint.
+            Brush stripeBrush = CreateBrush(Color.FromArgb(220, 35, 25, 20));
+
+            var bodyY = 16 * scale + bodyBob * scale;
+            var headY = 9 * scale + bodyBob * 0.5 * scale;
+
+            // Body stripes (vertical bars across the torso ellipse).
+            DrawTigerStripe(dc, stripeBrush, new Point(12 * scale, bodyY - 2 * scale), 0.9 * scale, 4.5 * scale);
+            DrawTigerStripe(dc, stripeBrush, new Point(16 * scale, bodyY - 3 * scale), 1.0 * scale, 5.5 * scale);
+            DrawTigerStripe(dc, stripeBrush, new Point(20 * scale, bodyY - 2 * scale), 1.0 * scale, 5.0 * scale);
+            DrawTigerStripe(dc, stripeBrush, new Point(23 * scale, bodyY - 1 * scale), 0.8 * scale, 3.5 * scale);
+
+            // Forehead stripes between the ears.
+            DrawTigerStripe(dc, stripeBrush, new Point(6 * scale, headY - 4 * scale), 0.6 * scale, 2.2 * scale);
+            DrawTigerStripe(dc, stripeBrush, new Point(8 * scale, headY - 4.5 * scale), 0.7 * scale, 2.6 * scale);
+            DrawTigerStripe(dc, stripeBrush, new Point(10 * scale, headY - 4 * scale), 0.6 * scale, 2.2 * scale);
+
+            // Cheek stripes.
+            DrawTigerStripe(dc, stripeBrush, new Point(2.5 * scale, headY + 0.5 * scale), 0.5 * scale, 1.6 * scale);
+            DrawTigerStripe(dc, stripeBrush, new Point(13.5 * scale, headY + 0.5 * scale), 0.5 * scale, 1.6 * scale);
+        }
+
+        private void DrawTigerStripe(DrawingContext dc, Brush brush, Point center, double radiusX, double radiusY)
+        {
+            dc.DrawEllipse(brush, null, center, radiusX, radiusY);
         }
 
         private void DrawCuteEyes(DrawingContext dc, double scale, double headY, PetState state, Brush eyeBrush)

@@ -72,6 +72,7 @@
     <Compile Include="Pets\Fish.cs" />
     <Compile Include="Pets\IPet.cs" />
     <Compile Include="Pets\OtherPets.cs" />
+    <Compile Include="Pets\Tiger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\PetManager.cs" />
     <Compile Include="Services\PetPersistenceService.cs" />

@@ -96,17 +96,26 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="4"
                                     SnapsToDevicePixels="True">
-                                <ContentPresenter HorizontalAlignment="Center"
+                                <ContentPresenter x:Name="Content"
+                                                  HorizontalAlignment="Center"
                                                   VerticalAlignment="Center"
+                                                  TextElement.Foreground="{TemplateBinding Foreground}"
                                                   RecognizesAccessKey="True"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bd" Property="Background"
                                             Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowButtonHoverActiveBrushKey}}"/>
+                                    <Setter TargetName="Bd" Property="BorderBrush"
+                                            Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowButtonHoverActiveBorderBrushKey}}"/>
+                                    <Setter TargetName="Content" Property="TextElement.Foreground"
+                                            Value="{DynamicResource {x:Static platform:EnvironmentColors.ToolWindowButtonHoverActiveGlyphBrushKey}}"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.5"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

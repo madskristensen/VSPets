@@ -455,6 +455,7 @@ namespace VSPets.Services
                 PetType.Wolf => color.HasValue ? new Wolf(color.Value) : Wolf.CreateRandom(),
                 PetType.Bird => color.HasValue ? new Bird(color.Value) : Bird.CreateRandom(),
                 PetType.Fish => color.HasValue ? new Fish(color.Value) : Fish.CreateRandom(),
+                PetType.Tiger => color.HasValue ? new Tiger(color.Value) : Tiger.CreateRandom(),
                 _ => Cat.CreateRandom()
             };
         }
