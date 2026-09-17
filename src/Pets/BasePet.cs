@@ -209,7 +209,7 @@ namespace VSPets.Pets
             if (_isDragging)
             {
                 // Only update breathing for a subtle "held" animation
-                UpdateBreathingAnimation(deltaTime);
+                UpdateIdleAnimation(deltaTime);
                 return;
             }
 
@@ -219,10 +219,17 @@ namespace VSPets.Pets
             UpdateFrameAnimation(deltaTime);
 
             // Update breathing animation (subtle scale pulsing)
-            UpdateBreathingAnimation(deltaTime);
+            UpdateIdleAnimation(deltaTime);
 
             // Update random behaviors
-            UpdateRandomBehaviors(deltaTime);
+            if (PetBehaviorSettings.EnableRandomBehaviors)
+            {
+                UpdateRandomBehaviors(deltaTime);
+            }
+            else
+            {
+                ResetRandomBehavior();
+            }
 
             // Update position based on current state
             UpdateMovement(deltaTime, canvasWidth);
@@ -231,6 +238,18 @@ namespace VSPets.Pets
             if (_stateTimer >= _stateDuration)
             {
                 TransitionToNextState();
+            }
+        }
+
+        private void UpdateIdleAnimation(double deltaTime)
+        {
+            if (PetBehaviorSettings.EnableIdleAnimations)
+            {
+                UpdateBreathingAnimation(deltaTime);
+            }
+            else
+            {
+                BreathingScale = 1.0;
             }
         }
 
@@ -332,6 +351,13 @@ namespace VSPets.Pets
                 // Reset timer for next behavior
                 _nextBehaviorTime = RandomRange(_minBehaviorInterval, _maxBehaviorInterval);
             }
+        }
+
+        private void ResetRandomBehavior()
+        {
+            _isDoingBehavior = false;
+            _currentBehavior = null;
+            _behaviorEndTime = 0;
         }
 
         protected virtual int GetBehaviorDuration(string behavior)

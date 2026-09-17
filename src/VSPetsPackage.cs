@@ -9,6 +9,7 @@ using System.Threading;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
+using VSPets.Models;
 using VSPets.Options;
 using VSPets.Pets;
 using VSPets.Services;
@@ -39,6 +40,8 @@ namespace VSPets
             {
                 // Load settings
                 General settings = await General.GetLiveInstanceAsync();
+                ApplyBehaviorSettings(settings);
+                General.Saved += OnSettingsSaved;
 
                 await PetManager.Instance.InitializeAsync();
 
@@ -106,6 +109,17 @@ namespace VSPets
             _ratingPrompt?.RegisterSuccessfulUsage();
         }
 
+        private static void OnSettingsSaved(General settings)
+        {
+            ApplyBehaviorSettings(settings);
+        }
+
+        private static void ApplyBehaviorSettings(General settings)
+        {
+            PetBehaviorSettings.EnableIdleAnimations = settings.EnableIdleAnimations;
+            PetBehaviorSettings.EnableRandomBehaviors = settings.EnableRandomBehaviors;
+        }
+
         protected override void Dispose(bool disposing)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -119,6 +133,7 @@ namespace VSPets
                 }
 
                 PetManager.Instance.PetAdded -= OnPetAdded;
+                General.Saved -= OnSettingsSaved;
 
                 // Save pets before closing - must complete synchronously to avoid data loss
                 try

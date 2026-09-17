@@ -327,25 +327,83 @@ public class BasePetTests
     [TestMethod]
     public void Update_BreathingScaleChangesWhileIdle()
     {
-        Cat pet = CreateCat();
-        pet.SetPosition(100.0, 0.0);
+        bool originalValue = PetBehaviorSettings.EnableIdleAnimations;
 
-        // Track whether breathing ever deviates from 1.0 during idle updates
-        bool breathingChanged = false;
-
-        for (int i = 0; i < 20; i++)
+        try
         {
-            pet.Update(0.05, 500.0);
+            PetBehaviorSettings.EnableIdleAnimations = true;
+            Cat pet = CreateCat();
+            pet.SetPosition(100.0, 0.0);
+            bool breathingChanged = false;
 
-            if (Math.Abs(pet.BreathingScale - 1.0) > 0.001)
+            for (var i = 0; i < 20; i++)
             {
-                breathingChanged = true;
-                break;
-            }
-        }
+                pet.Update(0.05, 500.0);
 
-        Assert.IsTrue(breathingChanged,
-            "Breathing scale should deviate from 1.0 at some point while idle.");
+                if (Math.Abs(pet.BreathingScale - 1.0) > 0.001)
+                {
+                    breathingChanged = true;
+                    break;
+                }
+            }
+
+            Assert.IsTrue(breathingChanged,
+                "Breathing scale should deviate from 1.0 at some point while idle.");
+        }
+        finally
+        {
+            PetBehaviorSettings.EnableIdleAnimations = originalValue;
+        }
+    }
+
+    [TestMethod]
+    public void Update_IdleAnimationsDisabled_KeepsDefaultScale()
+    {
+        bool originalValue = PetBehaviorSettings.EnableIdleAnimations;
+
+        try
+        {
+            PetBehaviorSettings.EnableIdleAnimations = false;
+            Cat pet = CreateCat();
+
+            for (var i = 0; i < 20; i++)
+            {
+                pet.Update(0.05, 500.0);
+            }
+
+            Assert.AreEqual(1.0, pet.BreathingScale, 0.001);
+        }
+        finally
+        {
+            PetBehaviorSettings.EnableIdleAnimations = originalValue;
+        }
+    }
+
+    [TestMethod]
+    public void Update_RandomBehaviorsDisabled_DoesNotTriggerBehavior()
+    {
+        bool originalValue = PetBehaviorSettings.EnableRandomBehaviors;
+
+        try
+        {
+            PetBehaviorSettings.EnableRandomBehaviors = false;
+            Cat pet = CreateCat();
+            var behaviorCount = 0;
+            pet.BehaviorTriggered += (s, e) => behaviorCount++;
+
+            for (var i = 0; i < 30; i++)
+            {
+                pet.Update(1.0, 500.0);
+                pet.ForceState(PetState.Idle);
+            }
+
+            Assert.AreEqual(0, behaviorCount);
+            Assert.IsNull(pet.CurrentBehavior);
+        }
+        finally
+        {
+            PetBehaviorSettings.EnableRandomBehaviors = originalValue;
+        }
     }
 
     [TestMethod]
