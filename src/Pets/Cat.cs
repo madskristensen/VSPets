@@ -38,7 +38,8 @@ namespace VSPets.Pets
                 PetColor.Brown,
                 PetColor.Gray,
                 PetColor.Orange,
-                PetColor.LightBrown
+                PetColor.LightBrown,
+                PetColor.Tuxedo,
             ];
         }
 

@@ -415,6 +415,7 @@ namespace VSPets.Animation
                 PetColor.DarkGray => Color.FromRgb(70, 70, 75),
                 PetColor.Orange => Color.FromRgb(255, 140, 0),
                 PetColor.LightBrown => Color.FromRgb(205, 170, 125),
+                PetColor.Tuxedo => Color.FromRgb(40, 40, 40),
                 PetColor.Red => Color.FromRgb(180, 60, 30),
                 PetColor.Yellow => Color.FromRgb(255, 220, 100),
                 PetColor.Pink => Color.FromRgb(255, 192, 203),
@@ -444,6 +445,10 @@ namespace VSPets.Animation
 
         private Color GetPetAccentColor(PetType petType, PetColor color)
         {
+            if (color == PetColor.Tuxedo)
+            {
+                return Color.FromRgb(245, 245, 245); // White belly for tuxedo cats
+            }
             // Lighter accent for chest/belly
             Color baseColor = GetPetBaseColor(petType, color);
             return Color.FromRgb(
