@@ -36,6 +36,7 @@ namespace VSPets.Models
         // Cat-specific
         Orange,
         LightBrown,
+        Tuxedo,   // Black and White
 
         // Dog-specific
         Red,      // Shiba Inu / Akita

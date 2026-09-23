@@ -134,6 +134,7 @@ namespace VSPets.Animation
                 PetColor.Gray => "gray",
                 PetColor.Orange => "orange",
                 PetColor.LightBrown => "lightbrown",
+                PetColor.Tuxedo => "tuxedo",
                 PetColor.Red => "red",
                 PetColor.Akita => "akita",
                 PetColor.Yellow => "yellow",
